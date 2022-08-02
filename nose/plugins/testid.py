@@ -163,11 +163,10 @@ class TestId(Plugin):
             ids = dict(list(zip(list(self.tests.values()), list(self.tests.keys()))))
         else:
             ids = self.ids
-        fh = open(self.idfile, 'wb')
-        dump({'ids': ids,
-              'failed': self.failed,
-              'source_names': self.source_names}, fh)
-        fh.close()
+        with open(self.idfile, 'wb') as fh:
+            dump({'ids': ids,
+                  'failed': self.failed,
+                  'source_names': self.source_names}, fh)
         log.debug('Saved test ids: %s, failed %s to %s',
                   ids, self.failed, self.idfile)
 
@@ -248,13 +247,8 @@ class TestId(Plugin):
     def makeName(self, addr):
         log.debug("Make name %s", addr)
         filename, module, call = addr
-        if filename is not None:
-            head = src(filename)
-        else:
-            head = module
-        if call is not None:
-            return "%s:%s" % (head, call)
-        return head
+        head = src(filename) if filename is not None else module
+        return f"{head}:{call}" if call is not None else head
 
     def setOutputStream(self, stream):
         """Get handle on output stream so the plugin can print id #s
@@ -276,11 +270,11 @@ class TestId(Plugin):
             if adr in self._seen:
                 self.write('   ')
             else:
-                self.write('#%s ' % self.tests[adr])
+                self.write(f'#{self.tests[adr]} ')
                 self._seen[adr] = 1
             return
         self.tests[adr] = self.id
-        self.write('#%s ' % self.id)
+        self.write(f'#{self.id} ')
         self.id += 1
 
     def afterTest(self, test):
@@ -304,9 +298,7 @@ class TestId(Plugin):
         log.debug("Got key %s", key)
         # I'm running tests mapped from the ids file,
         # not collecting new ones
-        if key in self.ids:
-            return self.makeName(self.ids[key])
-        return name
+        return self.makeName(self.ids[key]) if key in self.ids else name
 
     def write(self, output):
         if self._write_hashes:

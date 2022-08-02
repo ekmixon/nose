@@ -36,8 +36,9 @@ class TestUsage(unittest.TestCase):
 
     def test_from_directory(self):
         usage_txt = nose.core.TestProgram.usage()
-        assert usage_txt.startswith('nose collects tests automatically'), (
-                "Unexpected usage: '%s...'" % usage_txt[0:50].replace("\n", '\n'))
+        assert usage_txt.startswith(
+            'nose collects tests automatically'
+        ), "Unexpected usage: '%s...'" % usage_txt[:50].replace("\n", '\n')
 
     def test_from_zip(self):
         requested_data = []

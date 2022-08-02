@@ -53,7 +53,7 @@ class TestDeprecatedPlugin(unittest.TestCase):
 
         test = TC('test')
         test(res)
-        assert not res.errors, "Deprecated was not caught: %s" % res.errors
+        assert not res.errors, f"Deprecated was not caught: {res.errors}"
         assert res.deprecated
         assert res.deprecated[0][0] is test
 
@@ -70,6 +70,7 @@ class TestDeprecatedPlugin(unittest.TestCase):
         
 
     def test_deprecated_output(self):
+
         class TC(unittest.TestCase):
             def test(self):
                 raise DeprecatedTest('deprecated me')
@@ -81,7 +82,7 @@ class TestDeprecatedPlugin(unittest.TestCase):
 
         test = TC('test')
         test(res)
-        assert not res.errors, "Deprecated was not caught: %s" % res.errors
+        assert not res.errors, f"Deprecated was not caught: {res.errors}"
         assert res.deprecated            
 
         res.printErrors()

@@ -6,7 +6,7 @@ from nose.plugins import multiprocess
 from nose.suite import ContextSuite
 
 class T_fixt:
-    def setupClass(cls):
+    def setupClass(self):
         pass
     setupClass = classmethod(setupClass)
 

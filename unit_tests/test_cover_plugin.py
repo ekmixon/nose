@@ -37,9 +37,7 @@ class TestCoveragePlugin(object):
 
         def get_config_files(cov_info):
             cov_info = dict(cov_info)
-            if 'config_files' in cov_info:
-                return cov_info['config_files']
-            return None
+            return cov_info['config_files'] if 'config_files' in cov_info else None
 
         f = open('not_default_config_file', 'wb')
         f.close()
@@ -87,7 +85,7 @@ def _test_options_helper(arg_option, cover_option,
 
     args = arg_option
     if arg_value is not None:
-        args += '=' + arg_value
+        args += f'={arg_value}'
 
     options, _ = parser.parse_args(prefix_args + [args])
     c_arg_set.configure(options, Config())
@@ -95,10 +93,7 @@ def _test_options_helper(arg_option, cover_option,
 
     # If the option supports environment variables, check that too
     if env_key is not None:
-        args = 'true'
-        if arg_value is not None:
-            args = arg_value
-
+        args = arg_value if arg_value is not None else 'true'
         env = {env_key: args}
         c = Coverage()
         parser = OptionParser()

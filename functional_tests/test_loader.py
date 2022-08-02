@@ -26,9 +26,7 @@ class TestNoseTestLoader(unittest.TestCase):
         suite.ContextSuiteFactory.suiteClass = TreePrintContextSuite
 
     def tearDown(self):
-        to_del = [ m for m in sys.modules.keys() if
-                   m not in self._mods ]
-        if to_del:
+        if to_del := [m for m in sys.modules.keys() if m not in self._mods]:
             for mod in to_del:
                 del sys.modules[mod]
         sys.modules.update(self._mods)
@@ -155,7 +153,7 @@ class TestNoseTestLoader(unittest.TestCase):
         suite(res)
 
         assert 'test_pak' in sys.modules, \
-               "Context did not load test_pak"
+                   "Context did not load test_pak"
         m = sys.modules['test_pak']
         # print "test pak state", m.state
         expect = ['test_pak.setup',
@@ -308,8 +306,7 @@ class TestNoseTestLoader(unittest.TestCase):
 
         assert res.errors
         assert not res.failures, res.failures
-        assert res.testsRun == 0, \
-               "Expected to run 0 tests but ran %s" % res.testsRun
+        assert res.testsRun == 0, f"Expected to run 0 tests but ran {res.testsRun}"
 
     def test_mod_setup_skip_no_tests_run_no_errors(self):
         config = Config(plugins=PluginManager(plugins=[Skip()]))
@@ -324,8 +321,7 @@ class TestNoseTestLoader(unittest.TestCase):
         assert not res.errors, res.errors
         assert not res.failures, res.failures
         assert res.skipped
-        assert res.testsRun == 0, \
-               "Expected to run 0 tests but ran %s" % res.testsRun
+        assert res.testsRun == 0, f"Expected to run 0 tests but ran {res.testsRun}"
 
     def test_mod_import_skip_one_test_no_errors(self):
         config = Config(plugins=PluginManager(plugins=[Skip()]))
@@ -338,8 +334,7 @@ class TestNoseTestLoader(unittest.TestCase):
 
         assert not res.errors, res.errors
         assert not res.failures, res.failures
-        assert res.testsRun == 1, \
-               "Expected to run 1 tests but ran %s" % res.testsRun
+        assert res.testsRun == 1, f"Expected to run 1 tests but ran {res.testsRun}"
 
     def test_failed_import(self):
         ctx = os.path.join(support, 'ctx')
@@ -351,12 +346,11 @@ class TestNoseTestLoader(unittest.TestCase):
             descriptions=0, verbosity=1)
         suite(res)
 
-        print res.errors
+        ctx = os.path.join(support, 'ctx')
         res.printErrors()
         assert res.errors, "Expected errors but got none"
         assert not res.failures, res.failures
-        assert res.testsRun == 1, \
-               "Expected to run 1 tests but ran %s" % res.testsRun
+        assert res.testsRun == 1, f"Expected to run 1 tests but ran {res.testsRun}"
 
     def test_failed_import_module_name(self):
         ctx = os.path.join(support, 'ctx')
@@ -367,13 +361,12 @@ class TestNoseTestLoader(unittest.TestCase):
             stream=_WritelnDecorator(sys.stdout),
             descriptions=0, verbosity=1)
         suite(res)
-        print res.errors
+        ctx = os.path.join(support, 'ctx')
         res.printErrors()
         assert res.errors, "Expected errors but got none"
         assert not res.failures, res.failures
         err = res.errors[0][0].test.exc_class
-        assert err is ImportError, \
-            "Expected import error, got %s" % err
+        assert err is ImportError, f"Expected import error, got {err}"
 
     def test_load_nonsense_name(self):
         ctx = os.path.join(support, 'ctx')
@@ -494,9 +487,8 @@ class TreePrintContextSuite(suite.ContextSuite):
         finally:
             print self, 'teardown <--'
     def __repr__(self):
-        
-        return '%s<%s>' % (self.indent,
-                           getattr(self.context, '__name__', self.context))
+
+        return f"{self.indent}<{getattr(self.context, '__name__', self.context)}>"
     __str__ = __repr__
 
         

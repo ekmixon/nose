@@ -100,8 +100,11 @@ class UnboundMethod:
         filename = getattr(module, '__file__', None)
         if filename is not None:
             filename = os.path.abspath(filename)
-        return (nose.util.src(filename), modname, "%s.%s" % (cls.__name__,
-                                                        self._func.__name__))
+        return (
+            nose.util.src(filename),
+            modname,
+            f"{cls.__name__}.{self._func.__name__}",
+        )
 
     def __call__(self, *args, **kwargs):
         return self._func(*args, **kwargs)
@@ -110,8 +113,7 @@ class UnboundMethod:
         return getattr(self._func, attr)
 
     def __repr__(self):
-        return '<unbound method %s.%s>' % (self.__self__.cls.__name__,
-                                           self._func.__name__)
+        return f'<unbound method {self.__self__.cls.__name__}.{self._func.__name__}>'
 
 class UnboundSelf:
     def __init__(self, cls):
@@ -120,16 +122,13 @@ class UnboundSelf:
     # We have to do this hackery because Python won't let us override the
     # __class__ attribute...
     def __getattribute__(self, attr):
-        if attr == '__class__':
-            return self.cls
-        else:
-            return object.__getattribute__(self, attr)
+        return self.cls if attr == '__class__' else object.__getattribute__(self, attr)
 
 def unbound_method(cls, func):
     if inspect.ismethod(func):
         return func
     if not inspect.isfunction(func):
-        raise TypeError('%s is not a function' % (repr(func),))
+        raise TypeError(f'{repr(func)} is not a function')
     return UnboundMethod(cls, func)
 
 def ismethod(obj):
@@ -139,9 +138,7 @@ def ismethod(obj):
 # Make a pseudo-bytes function that can be called without the encoding arg:
 if sys.version_info >= (3, 0):
     def bytes_(s, encoding='utf8'):
-        if isinstance(s, bytes):
-            return s
-        return bytes(s, encoding)
+        return s if isinstance(s, bytes) else bytes(s, encoding)
 else:
     def bytes_(s, encoding=None):
         return str(s)
@@ -179,15 +176,16 @@ if sys.version_info[:2] < (3, 0):
         if is_base_exception(ev):
             if not hasattr(ev, '__unicode__'):
                 # 2.5-
-                if not hasattr(ev, 'message'):
-                    # 2.4
-                    msg = len(ev.args) and ev.args[0] or ''
-                else:
-                    msg = ev.message
+                msg = (
+                    ev.message
+                    if hasattr(ev, 'message')
+                    else len(ev.args) and ev.args[0] or ''
+                )
+
                 msg = force_unicode(msg, encoding=encoding)
                 clsname = force_unicode(ev.__class__.__name__,
                         encoding=encoding)
-                ev = u'%s: %s' % (clsname, msg)
+                ev = f'{clsname}: {msg}'
         elif not isinstance(ev, unicode):
             ev = repr(ev)
 
@@ -199,17 +197,12 @@ else:
 def format_exception(exc_info, encoding='UTF-8'):
     ec, ev, tb = exc_info
 
-    # Our exception object may have been turned into a string, and Python 3's
-    # traceback.format_exception() doesn't take kindly to that (it expects an
-    # actual exception object).  So we work around it, by doing the work
-    # ourselves if ev is not an exception object.
-    if not is_base_exception(ev):
-        tb_data = force_unicode(
-                ''.join(traceback.format_tb(tb)),
-                encoding)
-        ev = exc_to_unicode(ev)
-        return tb_data + ev
-    else:
+    if is_base_exception(ev):
         return force_unicode(
                 ''.join(traceback.format_exception(*exc_info)),
                 encoding)
+    tb_data = force_unicode(
+            ''.join(traceback.format_tb(tb)),
+            encoding)
+    ev = exc_to_unicode(ev)
+    return tb_data + ev

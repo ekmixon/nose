@@ -146,10 +146,7 @@ class Coverage(Plugin):
         if options.cover_xml:
             self.coverXmlFile = options.cover_xml_file
             log.debug('Will put XML coverage report in %s', self.coverXmlFile)
-        # Coverage uses True to mean default
-        self.coverConfigFile = True
-        if options.cover_config_file:
-            self.coverConfigFile = options.cover_config_file
+        self.coverConfigFile = options.cover_config_file or True
         self.coverPrint = not options.cover_no_print
         if self.enabled:
             self.status['active'] = True
@@ -274,12 +271,11 @@ class Coverage(Plugin):
         """If inclusive coverage enabled, return true for all source files
         in wanted packages.
         """
-        if self.coverInclusive:
-            if file.endswith(".py"):
-                if package and self.coverPackages:
-                    for want in self.coverPackages:
-                        if package.startswith(want):
-                            return True
-                else:
-                    return True
+        if self.coverInclusive and file.endswith(".py"):
+            if package and self.coverPackages:
+                for want in self.coverPackages:
+                    if package.startswith(want):
+                        return True
+            else:
+                return True
         return None

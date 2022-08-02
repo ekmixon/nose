@@ -92,9 +92,7 @@ class Bucket(object):
         self.__dict__['d'].update(kw)
         
     def __getattr__(self, attr):
-        if not self.__dict__.has_key('d'):
-            return None
-        return self.__dict__['d'].get(attr)
+        return self.__dict__['d'].get(attr) if self.__dict__.has_key('d') else None
 
     def __setattr__(self, attr, val):        
         self.d[attr] = val

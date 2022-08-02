@@ -12,8 +12,8 @@ def test_c():
 def test_gen():
     def tryit(i):
         pass
-    
-    for i in range(0, 4):
+
+    for i in range(4):
         yield tryit, i
 
 
@@ -31,7 +31,8 @@ class TestCls:
     def test_gen(self):
         def tryit(i):
             pass
-        for i in range(0, 4):
+
+        for i in range(4):
             yield tryit, i
 
     def test_z(self):

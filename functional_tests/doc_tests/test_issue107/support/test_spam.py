@@ -1,5 +1,5 @@
 def test_spam():
-    assert True
+    pass
 
 def test_eggs():
     pass

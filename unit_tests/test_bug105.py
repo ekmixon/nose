@@ -11,17 +11,17 @@ class TestBug105(unittest.TestCase):
 
         l = TestLoader()
         testmod = l.loadTestsFromDir(where).next()
-        print testmod
+        from nose.loader import TestLoader
+
         testmod.setUp()
 
         def fix(t):
             s = str(t)
-            if ': ' in s:
-                return s[s.index(': ')+2:]
-            return s
-        
+            return s[s.index(': ')+2:] if ': ' in s else s
+
         tests = map(fix, testmod)
-        print tests
+        from nose.loader import TestLoader
+
         self.assertEqual(tests, ['tests.test_z', 'tests.test_a',
                                  'tests.test_dz', 'tests.test_mdz',
                                  'tests.test_b'])

@@ -25,7 +25,7 @@ def ok_(expr, msg=None):
 def eq_(a, b, msg=None):
     """Shorthand for 'assert a == b, "%r != %r" % (a, b)
     """
-    if not a == b:
+    if a != b:
         raise AssertionError(msg or "%r != %r" % (a, b))
 
 
@@ -36,15 +36,14 @@ def eq_(a, b, msg=None):
 caps = re.compile('([A-Z])')
 
 def pep8(name):
-    return caps.sub(lambda m: '_' + m.groups()[0].lower(), name)
+    return caps.sub(lambda m: f'_{m.groups()[0].lower()}', name)
 
 class Dummy(unittest.TestCase):
     def nop():
         pass
 _t = Dummy('nop')
 
-for at in [ at for at in dir(_t)
-            if at.startswith('assert') and not '_' in at ]:
+for at in [at for at in dir(_t) if at.startswith('assert') and '_' not in at]:
     pepd = pep8(at)
     vars()[pepd] = getattr(_t, at)
     __all__.append(pepd)

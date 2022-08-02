@@ -43,7 +43,7 @@ class TestCapturePlugin(unittest.TestCase):
         c = Capture()
         parser = OptionParser()
         c.addOptions(parser)
-        
+
         options, args = parser.parse_args(['test_can_be_disabled'])
         c.configure(options, Config())
         assert c.enabled

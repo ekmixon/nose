@@ -202,8 +202,7 @@ class Doctest(Plugin):
                 mode, option_name = flag[0], flag[1:]
                 option_flag = doctest.OPTIONFLAGS_BY_NAME.get(option_name)
                 if not option_flag:
-                    raise ValueError("Unknown doctest option %s" %
-                                     (option_name,))
+                    raise ValueError(f"Unknown doctest option {option_name}")
                 if mode == '+':
                     self.optionflags |= option_flag
                 elif mode == '-':
@@ -304,9 +303,8 @@ class Doctest(Plugin):
         """Look for doctests in the given object, which will be a
         function, method or class.
         """
-        name = getattr(obj, '__name__', 'Unnammed %s' % type(obj))
-        doctests = self.finder.find(obj, module=getmodule(parent), name=name)
-        if doctests:
+        name = getattr(obj, '__name__', f'Unnammed {type(obj)}')
+        if doctests := self.finder.find(obj, module=getmodule(parent), name=name):
             for test in doctests:
                 if len(test.examples) == 0:
                     continue
@@ -367,18 +365,17 @@ class DocTestCase(doctest.DocTestCase):
             return test_address(self._nose_obj)
         obj = resolve_name(self._dt_test.name)
 
-        if isproperty(obj):
-            # properties have no connection to the class they are in
-            # so we can't just look 'em up, we have to first look up
-            # the class, then stick the prop on the end
-            parts = self._dt_test.name.split('.')
-            class_name = '.'.join(parts[:-1])
-            cls = resolve_name(class_name)
-            base_addr = test_address(cls)
-            return (base_addr[0], base_addr[1],
-                    '.'.join([base_addr[2], parts[-1]]))
-        else:
+        if not isproperty(obj):
             return test_address(obj)
+        # properties have no connection to the class they are in
+        # so we can't just look 'em up, we have to first look up
+        # the class, then stick the prop on the end
+        parts = self._dt_test.name.split('.')
+        class_name = '.'.join(parts[:-1])
+        cls = resolve_name(class_name)
+        base_addr = test_address(cls)
+        return (base_addr[0], base_addr[1],
+                '.'.join([base_addr[2], parts[-1]]))
     
     # doctests loaded via find(obj) omit the module name
     # so we need to override id, __repr__ and shortDescription
@@ -391,17 +388,17 @@ class DocTestCase(doctest.DocTestCase):
             if pk is None:
                 return name
             if not name.startswith(pk):
-                name = "%s.%s" % (pk, name)
+                name = f"{pk}.{name}"
         return name
     
     def __repr__(self):
         name = self.id()
         name = name.split('.')
-        return "%s (%s)" % (name[-1], '.'.join(name[:-1]))
+        return f"{name[-1]} ({'.'.join(name[:-1])})"
     __str__ = __repr__
 
     def shortDescription(self):
-        return 'Doctest: %s' % self.id()
+        return f'Doctest: {self.id()}'
 
     def setUp(self):
         if self._result_var is not None:

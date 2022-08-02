@@ -63,10 +63,12 @@ def raises(*exceptions):
             except:
                 raise
             else:
-                message = "%s() did not raise %s" % (name, valid)
+                message = f"{name}() did not raise {valid}"
                 raise AssertionError(message)
+
         newfunc = make_decorator(func)(newfunc)
         return newfunc
+
     return decorate
 
 
@@ -97,10 +99,12 @@ def timed(limit):
             result = func(*arg, **kw)
             end = time.time()
             if end - start > limit:
-                raise TimeExpired("Time limit (%s) exceeded" % limit)
+                raise TimeExpired(f"Time limit ({limit}) exceeded")
             return result
+
         newfunc = make_decorator(func)(newfunc)
         return newfunc
+
     return decorate
 
 

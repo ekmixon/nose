@@ -125,10 +125,7 @@ class TestLoader(unittest.TestLoader):
     def _haveVisited(self, path):
         # For cases where path is None, we always pretend we haven't visited
         # them.
-        if path is None:
-            return False
-
-        return path in self._visitedPaths
+        return False if path is None else path in self._visitedPaths
 
     def _addVisitedPath(self, path):
         if path is not None:
@@ -161,13 +158,12 @@ class TestLoader(unittest.TestLoader):
             if is_file:
                 is_dir = False
                 wanted = self.selector.wantFile(entry_path)
-            else:
-                is_dir = op_isdir(entry_path)
-                if is_dir:
+            elif is_dir := op_isdir(entry_path):
                     # this hard-coded initial-underscore test will be removed:
                     # http://code.google.com/p/python-nose/issues/detail?id=82
-                    if entry.startswith('_'):
-                        continue
+                if entry.startswith('_'):
+                    continue
+                else:
                     wanted = self.selector.wantDirectory(entry_path)
             is_package = ispackage(entry_path)
 
@@ -195,9 +191,7 @@ class TestLoader(unittest.TestLoader):
                     # Another test dir in this one: recurse lazily
                     yield self.suiteClass(
                         lambda: self.loadTestsFromDir(entry_path))
-        tests = []
-        for test in plugins.loadTestsFromDir(path):
-            tests.append(test)
+        tests = list(plugins.loadTestsFromDir(path))
         # TODO: is this try/except needed?
         try:
             if tests:
@@ -220,9 +214,7 @@ class TestLoader(unittest.TestLoader):
         """
         log.debug("Load from non-module file %s", filename)
         try:
-            tests = [test for test in
-                     self.config.plugins.loadTestsFromFile(filename)]
-            if tests:
+            if tests := list(self.config.plugins.loadTestsFromFile(filename)):
                 # Plugins can yield False to indicate that they were
                 # unable to load tests from a file, but it was not an
                 # error -- the file just had no tests to load.
@@ -231,8 +223,7 @@ class TestLoader(unittest.TestLoader):
             else:
                 # Nothing was able to even try to load from this file
                 open(filename, 'r').close() # trigger os error
-                raise ValueError("Unable to load tests from file %s"
-                                 % filename)
+                raise ValueError(f"Unable to load tests from file {filename}")
         except (KeyboardInterrupt, SystemExit):
             raise
         except:
@@ -296,15 +287,14 @@ class TestLoader(unittest.TestLoader):
                         # record' (so no need to pass it as the descriptor)
                         yield MethodTestCase(g, test=test_func, arg=arg)
                     else:
-                        yield Failure(
-                            TypeError,
-                            "%s is not a callable or method" % test_func)
+                        yield Failure(TypeError, f"{test_func} is not a callable or method")
             except KeyboardInterrupt:
                 raise
             except:
                 exc = sys.exc_info()
                 yield Failure(exc[0], exc[1], exc[2],
                               address=test_address(generator))
+
         return self.suiteClass(generate, context=generator, can_split=False)
 
     def loadTestsFromModule(self, module, path=None, discovered=False):
@@ -347,13 +337,11 @@ class TestLoader(unittest.TestLoader):
             log.debug("path: %s os.path.realpath(%s): %s",
                       path, os.path.normcase(module_path),
                       os.path.realpath(os.path.normcase(module_path)))
-            if (self.config.traverseNamespace or not path) or \
-                    os.path.realpath(
-                        os.path.normcase(module_path)).startswith(path):
-                # Egg files can be on sys.path, so make sure the path is a
-                # directory before trying to load from it.
-                if os.path.isdir(module_path):
-                    tests.extend(self.loadTestsFromDir(module_path))
+            if (
+                (self.config.traverseNamespace or not path)
+                or os.path.realpath(os.path.normcase(module_path)).startswith(path)
+            ) and os.path.isdir(module_path):
+                tests.extend(self.loadTestsFromDir(module_path))
 
         for test in self.config.plugins.loadTestsFromModule(module, path):
             tests.append(test)
@@ -372,9 +360,7 @@ class TestLoader(unittest.TestLoader):
 
         suite = self.suiteClass
 
-        # give plugins first crack
-        plug_tests = self.config.plugins.loadTestsFromName(name, module)
-        if plug_tests:
+        if plug_tests := self.config.plugins.loadTestsFromName(name, module):
             return suite(plug_tests)
 
         addr = TestAddress(name, workingDir=self.workingDir)
@@ -402,78 +388,89 @@ class TestLoader(unittest.TestLoader):
             else:
                 return suite(ContextList([self.makeTest(obj, parent)],
                                          context=parent))
-        else:
-            if addr.module:
-                try:
-                    if addr.filename is None:
-                        module = resolve_name(addr.module)
-                    else:
-                        self.config.plugins.beforeImport(
+        elif addr.module:
+            try:
+                if addr.filename is None:
+                    module = resolve_name(addr.module)
+                else:
+                    self.config.plugins.beforeImport(
+                        addr.filename, addr.module)
+                    # FIXME: to support module.name names,
+                    # do what resolve-name does and keep trying to
+                    # import, popping tail of module into addr.call,
+                    # until we either get an import or run out of
+                    # module parts
+                    try:
+                        module = self.importer.importFromPath(
                             addr.filename, addr.module)
-                        # FIXME: to support module.name names,
-                        # do what resolve-name does and keep trying to
-                        # import, popping tail of module into addr.call,
-                        # until we either get an import or run out of
-                        # module parts
-                        try:
-                            module = self.importer.importFromPath(
-                                addr.filename, addr.module)
-                        finally:
-                            self.config.plugins.afterImport(
-                                addr.filename, addr.module)
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except:
-                    exc = sys.exc_info()
-                    return suite([Failure(exc[0], exc[1], exc[2],
-                                          address=addr.totuple())])
-                if addr.call:
-                    return self.loadTestsFromName(addr.call, module)
+                    finally:
+                        self.config.plugins.afterImport(
+                            addr.filename, addr.module)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except:
+                exc = sys.exc_info()
+                return suite([Failure(exc[0], exc[1], exc[2],
+                                      address=addr.totuple())])
+            return (
+                self.loadTestsFromName(addr.call, module)
+                if addr.call
+                else self.loadTestsFromModule(
+                    module, addr.filename, discovered=discovered
+                )
+            )
+
+        elif addr.filename:
+            path = addr.filename
+            if addr.call:
+                package = getpackage(path)
+                if package is None:
+                    return suite([
+                        Failure(ValueError,
+                                "Can't find callable %s in file %s: "
+                                "file is not a python module" %
+                                (addr.call, path),
+                                address=addr.totuple())])
                 else:
-                    return self.loadTestsFromModule(
-                        module, addr.filename,
-                        discovered=discovered)
-            elif addr.filename:
-                path = addr.filename
-                if addr.call:
-                    package = getpackage(path)
-                    if package is None:
-                        return suite([
-                            Failure(ValueError,
-                                    "Can't find callable %s in file %s: "
-                                    "file is not a python module" %
-                                    (addr.call, path),
-                                    address=addr.totuple())])
                     return self.loadTestsFromName(addr.call, module=package)
-                else:
-                    if op_isdir(path):
-                        # In this case we *can* be lazy since we know
-                        # that each module in the dir will be fully
-                        # loaded before its tests are executed; we
-                        # also know that we're not going to be asked
-                        # to load from . and ./some_module.py *as part
-                        # of this named test load*
-                        return LazySuite(
-                            lambda: self.loadTestsFromDir(path))
-                    elif op_isfile(path):
-                        return self.loadTestsFromFile(path)
-                    else:
-                        return suite([
-                                Failure(OSError, "No such file %s" % path,
-                                        address=addr.totuple())])
+            elif op_isdir(path):
+                # In this case we *can* be lazy since we know
+                # that each module in the dir will be fully
+                # loaded before its tests are executed; we
+                # also know that we're not going to be asked
+                # to load from . and ./some_module.py *as part
+                # of this named test load*
+                return LazySuite(
+                    lambda: self.loadTestsFromDir(path))
+            elif op_isfile(path):
+                return self.loadTestsFromFile(path)
             else:
+                return suite(
+                    [
+                        Failure(
+                            OSError, f"No such file {path}", address=addr.totuple()
+                        )
+                    ]
+                )
+
+        else:
                 # just a function? what to do? I think it can only be
                 # handled when module is not None
-                return suite([
-                    Failure(ValueError, "Unresolvable test name %s" % name,
-                            address=addr.totuple())])
+            return suite(
+                [
+                    Failure(
+                        ValueError,
+                        f"Unresolvable test name {name}",
+                        address=addr.totuple(),
+                    )
+                ]
+            )
 
     def loadTestsFromNames(self, names, module=None):
         """Load tests from all names, returning a suite containing all
         tests.
         """
-        plug_res = self.config.plugins.loadTestsFromNames(names, module)
-        if plug_res:
+        if plug_res := self.config.plugins.loadTestsFromNames(names, module):
             suite, names = plug_res
             if suite:
                 return self.suiteClass([
@@ -485,18 +482,17 @@ class TestLoader(unittest.TestLoader):
     def loadTestsFromTestCase(self, testCaseClass):
         """Load tests from a unittest.TestCase subclass.
         """
-        cases = []
         plugins = self.config.plugins
-        for case in plugins.loadTestsFromTestCase(testCaseClass):
-            cases.append(case)
+        cases = list(plugins.loadTestsFromTestCase(testCaseClass))
         # For efficiency in the most common case, just call and return from
         # super. This avoids having to extract cases and rebuild a context
         # suite when there are no plugin-contributed cases.
         if not cases:
             return super(TestLoader, self).loadTestsFromTestCase(testCaseClass)
         cases.extend(
-            [case for case in
-             super(TestLoader, self).loadTestsFromTestCase(testCaseClass)])
+            list(super(TestLoader, self).loadTestsFromTestCase(testCaseClass))
+        )
+
         return self.suiteClass(cases)
 
     def loadTestsFromTestClass(self, cls):
@@ -539,15 +535,13 @@ class TestLoader(unittest.TestLoader):
         """Given a test object and its parent, return a test case
         or test suite.
         """
-        plug_tests = []
         try:
             addr = test_address(obj)
         except KeyboardInterrupt:
             raise
         except:
             addr = None
-        for test in self.config.plugins.makeTest(obj, parent):
-            plug_tests.append(test)
+        plug_tests = list(self.config.plugins.makeTest(obj, parent))
         # TODO: is this try/except needed?
         try:
             if plug_tests:
@@ -577,11 +571,10 @@ class TestLoader(unittest.TestLoader):
                 parent = obj.__class__
             if issubclass(parent, unittest.TestCase):
                 return parent(obj.__name__)
+            if isgenerator(obj):
+                return self.loadTestsFromGeneratorMethod(obj, parent)
             else:
-                if isgenerator(obj):
-                    return self.loadTestsFromGeneratorMethod(obj, parent)
-                else:
-                    return MethodTestCase(obj)
+                return MethodTestCase(obj)
         elif isfunction(obj):
             if parent and obj.__module__ != parent.__name__:
                 obj = transplant_func(obj, parent.__name__)
@@ -603,7 +596,7 @@ class TestLoader(unittest.TestLoader):
             parent, obj = obj, getattr(obj, part, None)
         if obj is None:
             # no such test
-            obj = Failure(ValueError, "No such test %s" % name)
+            obj = Failure(ValueError, f"No such test {name}")
         return parent, obj
 
     def parseGeneratedTest(self, test):

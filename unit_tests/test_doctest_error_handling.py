@@ -23,14 +23,14 @@ class TestDoctestErrorHandling(unittest.TestCase):
     def test_no_doctests_in_file(self):
         p = self.p
         mod = __import__('no_doctests')
-        loaded = [ t for t in p.loadTestsFromModule(mod) ]
-        assert not loaded, "Loaded %s from empty module" % loaded
+        loaded = list(p.loadTestsFromModule(mod))
+        assert not loaded, f"Loaded {loaded} from empty module"
 
     def test_err_doctests_raises_exception(self):
         p = self.p
         mod = __import__('err_doctests')
         try:
-            loaded = [ t for t in p.loadTestsFromModule(mod) ]
+            loaded = list(p.loadTestsFromModule(mod))
         except ValueError:
             pass
         else:

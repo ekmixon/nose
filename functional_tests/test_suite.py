@@ -14,9 +14,7 @@ class TestContextSuiteFactory(unittest.TestCase):
         sys.path.insert(0, os.path.join(support, 'package2'))
 
     def tearDown(self):
-        to_del = [ m for m in sys.modules.keys() if
-                   m not in self._mods ]
-        if to_del:
+        if to_del := [m for m in sys.modules.keys() if m not in self._mods]:
             for mod in to_del:
                 del sys.modules[mod]
         sys.modules.update(self._mods)
@@ -36,9 +34,9 @@ class TestContextSuiteFactory(unittest.TestCase):
         from test_pak.test_sub import test_mod
         from test_pak import test_sub
         import test_pak
-        
+
         factory = ContextSuiteFactory()
-        ancestry = [l for l in factory.ancestry(TestMaths)]
+        ancestry = list(factory.ancestry(TestMaths))
         self.assertEqual(ancestry,
                          [test_mod, test_sub, test_pak])
 

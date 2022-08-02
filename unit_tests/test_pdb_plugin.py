@@ -35,7 +35,7 @@ class TestPdbPlugin(unittest.TestCase):
             raise Exception("oops")
         except:
             err = sys.exc_info()
-    
+
         p.enabled = True
         p.enabled_for_errors = True
         p.enabled_for_failures = True
@@ -90,12 +90,12 @@ class TestPdbPlugin(unittest.TestCase):
         assert p.enabled_for_failures
 
     def test_real_stdout_restored_before_call(self):
-        
+
         class CheckStdout(StubPdb):
             def post_mortem(self, tb):
                 assert sys.stdout is sys.__stdout__, \
-                       "sys.stdout was not restored to sys.__stdout__ " \
-                       "before call"
+                           "sys.stdout was not restored to sys.__stdout__ " \
+                           "before call"
         debug.pdb = CheckStdout()
 
         patch = StringIO()
@@ -108,7 +108,7 @@ class TestPdbPlugin(unittest.TestCase):
             raise Exception("oops")
         except:
             err = sys.exc_info()
-    
+
         p.addError(None, err)    
         assert sys.stdout is patch, "sys.stdout was not reset after call"
         

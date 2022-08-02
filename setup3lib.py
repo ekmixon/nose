@@ -44,13 +44,13 @@ else:
             base, ver = m.groups()
             if base != file:
                 continue
-            ver = tuple([int(v) for v in ver.split('.')])
-            if sys.version_info >= ver and ver > best_ver:
+            ver = tuple(int(v) for v in ver.split('.'))
+            if sys.version_info >= ver > best_ver:
                 best_ver = ver
                 patchfile = dirfile
         if not patchfile:
             return False
-        log.info("Applying %s to %s..." % (patchfile, filename))
+        log.info(f"Applying {patchfile} to {filename}...")
         cwd = os.getcwd()
         os.chdir(dir)
         try:

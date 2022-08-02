@@ -6,14 +6,19 @@ from nose.plugins import Plugin, PluginManager
 class TestTestCasePluginCalls(unittest.TestCase):
 
     def test_describe_test_called(self):
+
+
+
         class Descrip(Plugin):
             counter = 0
             enabled = True
             def describeTest(self, test):
-                return "test #%s" % id(test)
+                return f"test #{id(test)}"
+
             def testName(self, test):
                 self.counter += 1
-                return "(%s) test" % self.counter
+                return f"({self.counter}) test"
+
 
         class TC(unittest.TestCase):
             def test_one(self):
@@ -28,10 +33,13 @@ class TestTestCasePluginCalls(unittest.TestCase):
 
         self.assertEqual(str(c1), '(1) test')
         self.assertEqual(str(c2), '(2) test')
-        assert c1.shortDescription().startswith('test #'), \
-               "Unexpected shortDescription: %s" % c1.shortDescription()
-        assert c2.shortDescription().startswith('test #'), \
-               "Unexpected shortDescription: %s" % c2.shortDescription()
+        assert c1.shortDescription().startswith(
+            'test #'
+        ), f"Unexpected shortDescription: {c1.shortDescription()}"
+
+        assert c2.shortDescription().startswith(
+            'test #'
+        ), f"Unexpected shortDescription: {c2.shortDescription()}"
 
 
 if __name__ == '__main__':

@@ -17,10 +17,9 @@ class AllFail(Plugin):
     def fail(self, result):
         result.startTest(self.test)
         try:
-            try:
-                assert False, "I want to fail!"
-            except:
-                result.addFailure(self.test, sys.exc_info())
+            assert False, "I want to fail!"
+        except:
+            result.addFailure(self.test, sys.exc_info())
         finally:
             result.stopTest(self.test)
 

@@ -46,9 +46,7 @@ class Test(unittest.TestCase):
 
     def __str__(self):
         name = self.plugins.testName(self)
-        if name is not None:
-            return name
-        return str(self.test)
+        return name if name is not None else str(self.test)
 
     def __repr__(self):
         return "Test(%r)" % self.test
@@ -128,14 +126,13 @@ class Test(unittest.TestCase):
         if self.resultProxy:
             result = self.resultProxy(result, self)
         try:
-            try:
-                self.beforeTest(result)
-                self.runTest(result)
-            except KeyboardInterrupt:
-                raise
-            except:
-                err = sys.exc_info()
-                result.addError(self, err)
+            self.beforeTest(result)
+            self.runTest(result)
+        except KeyboardInterrupt:
+            raise
+        except:
+            err = sys.exc_info()
+            result.addError(self, err)
         finally:
             self.afterTest(result)
 
@@ -282,9 +279,9 @@ class FunctionTestCase(TestBase):
             name = func.compat_func_name
         else:
             name = func.__name__
-        name = "%s.%s" % (func.__module__, name)
-        if not self.arg_repr == '()':
-            name = "%s%s" % (name, self.arg_repr)
+        name = f"{func.__module__}.{name}"
+        if self.arg_repr != '()':
+            name = f"{name}{self.arg_repr}"
         # FIXME need to include the full dir path to disambiguate
         # in cases where test module of the same name was seen in
         # another directory (old fromDirectory)
@@ -351,11 +348,9 @@ class MethodTestCase(TestBase):
             name = func.compat_func_name
         else:
             name = func.__name__
-        name = "%s.%s.%s" % (self.cls.__module__,
-                             self.cls.__name__,
-                             name)
-        if not self.arg_repr == '()':
-            name = "%s%s" % (name, self.arg_repr)
+        name = f"{self.cls.__module__}.{self.cls.__name__}.{name}"
+        if self.arg_repr != '()':
+            name = f"{name}{self.arg_repr}"
         return name
     __repr__ = __str__
 

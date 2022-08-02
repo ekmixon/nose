@@ -121,8 +121,7 @@ class ResultProxy(object):
     def addError(self, test, err):
         self.assertMyTest(test)
         plugins = self.plugins
-        plugin_handled = plugins.handleError(self.test, err)
-        if plugin_handled:
+        if plugin_handled := plugins.handleError(self.test, err):
             return
         # test.passed is set in result, to account for error classes
         formatted = plugins.formatError(self.test, err)
@@ -136,8 +135,7 @@ class ResultProxy(object):
     def addFailure(self, test, err):
         self.assertMyTest(test)
         plugins = self.plugins
-        plugin_handled = plugins.handleFailure(self.test, err)
-        if plugin_handled:
+        if plugin_handled := plugins.handleFailure(self.test, err):
             return
         self.test.passed = False
         formatted = plugins.formatFailure(self.test, err)

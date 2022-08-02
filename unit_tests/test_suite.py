@@ -22,10 +22,10 @@ class TestLazySuite(unittest.TestCase):
         TC = self.TC
         tests = [TC('test_one'), TC('test_two')]
         def gen_tests():
-            for test in tests:
-                yield test
+            yield from tests
+
         suite = LazySuite(gen_tests)
-        self.assertEqual(list([test for test in suite]), tests)
+        self.assertEqual(list(list(suite)), tests)
 
     def test_lazy_and_nonlazy(self):
         TC = self.TC
@@ -110,13 +110,13 @@ class TestContextSuite(unittest.TestCase):
         suite3 = ContextSuite([suite2])
 
         # suite3 is [suite2]
-        tests = [t for t in suite3]
+        tests = list(suite3)
         assert isinstance(tests[0], ContextSuite)
         # suite2 is [suite]
-        tests = [t for t in tests[0]]
+        tests = list(tests[0])
         assert isinstance(tests[0], ContextSuite)
         # suite is full of wrapped tests
-        tests = [t for t in tests[0]]
+        tests = list(tests[0])
         cases = filter(lambda t: isinstance(t, case.Test), tests)
         assert cases
         assert len(cases) == len(tests)
@@ -180,12 +180,12 @@ class TestContextSuite(unittest.TestCase):
         # the outer suite sets up its context, the inner
         # its context only, without re-setting up the outer context
         csf = ContextSuiteFactory()
-        inner_suite = csf(ContextList([TC()], context=top.bot)) 
+        inner_suite = csf(ContextList([TC()], context=top.bot))
         suite = csf(ContextList(inner_suite, context=top))
 
         suite.setUp()
         assert top in csf.was_setup
-        assert not top.bot in csf.was_setup
+        assert top.bot not in csf.was_setup
         inner_suite.setUp()
         assert top in csf.was_setup
         assert top.bot in csf.was_setup
@@ -193,6 +193,7 @@ class TestContextSuite(unittest.TestCase):
         assert csf.was_setup[top.bot] is inner_suite
 
     def test_context_fixtures_setup_fails(self):
+
         class P:
             was_setup = False
             was_torndown = False
@@ -214,10 +215,10 @@ class TestContextSuite(unittest.TestCase):
         assert res.errors, res.errors
         assert context.was_setup
         assert not context.was_torndown
-        assert res.testsRun == 0, \
-               "Expected to run no tests but ran %s" % res.testsRun
+        assert res.testsRun == 0, f"Expected to run no tests but ran {res.testsRun}"
 
     def test_context_fixtures_no_tests_no_setup(self):
+
         class P:
             was_setup = False
             was_torndown = False
@@ -236,8 +237,7 @@ class TestContextSuite(unittest.TestCase):
         assert not res.errors, res.errors
         assert not context.was_setup
         assert not context.was_torndown
-        assert res.testsRun == 0, \
-               "Expected to run no tests but ran %s" % res.testsRun
+        assert res.testsRun == 0, f"Expected to run no tests but ran {res.testsRun}"
 
     def test_result_proxy_used(self):
         class TC(unittest.TestCase):
@@ -261,27 +261,27 @@ class TestContextSuiteFactory(unittest.TestCase):
         top = imp.new_module('top')
         top.bot = imp.new_module('top.bot')
         top.bot.end = imp.new_module('top.bot.end')
-        
+
         sys.modules['top'] = top
         sys.modules['top.bot'] = top.bot
         sys.modules['top.bot.end'] = top.bot.end
-        
+
         class P:
             pass
         top.bot.P = P
         P.__module__ = 'top.bot'
 
         csf = ContextSuiteFactory()
-        P_ancestors = list([a for a in csf.ancestry(P)])
+        P_ancestors = list(list(csf.ancestry(P)))
         self.assertEqual(P_ancestors, [top.bot, top])
 
-        end_ancestors = list([a for a in csf.ancestry(top.bot.end)])
+        end_ancestors = list(list(csf.ancestry(top.bot.end)))
         self.assertEqual(end_ancestors, [top.bot, top])
 
-        bot_ancestors = list([a for a in csf.ancestry(top.bot)])
+        bot_ancestors = list(list(csf.ancestry(top.bot)))
         self.assertEqual(bot_ancestors, [top])
 
-        top_ancestors = list([a for a in csf.ancestry(top)])
+        top_ancestors = list(list(csf.ancestry(top)))
         self.assertEqual(top_ancestors, [])
 
 

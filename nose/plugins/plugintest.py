@@ -245,16 +245,13 @@ class PluginTester(object):
         from nose.core import TestProgram
         from nose.plugins.manager import PluginManager
 
-        suite = None
         stream = Buffer()
         conf = Config(env=self.env,
                       stream=stream,
                       plugins=PluginManager(plugins=self.plugins))
         if self.ignoreFiles is not None:
             conf.ignoreFiles = self.ignoreFiles
-        if not self.suitepath:
-            suite = self.makeSuite()
-
+        suite = None if self.suitepath else self.makeSuite()
         self.nose = TestProgram(argv=self.argv, config=conf, suite=suite,
                                 exit=False)
         self.output = AccessDecorator(stream)
@@ -317,9 +314,11 @@ def remove_stack_traces(out):
         .*?(?P<exception> \w+ ) # exception name
         (?P<msg> [:\n] .*)      # the rest
         """, re.VERBOSE | re.MULTILINE | re.DOTALL)
-    blocks = []
-    for block in blankline_separated_blocks(out):
-        blocks.append(traceback_re.sub(r"\g<hdr>\n...\n\g<exception>\g<msg>", block))
+    blocks = [
+        traceback_re.sub(r"\g<hdr>\n...\n\g<exception>\g<msg>", block)
+        for block in blankline_separated_blocks(out)
+    ]
+
     return "".join(blocks)
 
 

@@ -143,16 +143,16 @@ class TestDoctestPlugin(unittest.TestCase):
     def test_collect_pymodule(self):
         here = os.path.dirname(__file__)
         support = os.path.join(here, 'support')
-        if not support in sys.path:
+        if support not in sys.path:
             sys.path.insert(0, support)
         import foo.bar.buz
-        
+
         conf = Config()
         opt = Bucket()
         plug = Doctest()
         plug.can_configure = True
         plug.configure(opt, conf)
-        suite = plug.loadTestsFromModule(foo.bar.buz)        
+        suite = plug.loadTestsFromModule(foo.bar.buz)
         expect = ['[afunc (foo.bar.buz)]']
         for test in suite:
             self.assertEqual(str(test), expect.pop(0))
@@ -204,7 +204,7 @@ class TestDoctestPlugin(unittest.TestCase):
         support = os.path.join(here, 'support')
         plug = Doctest()
         for test in plug.loadTestsFromFile(os.path.join(support, 'foo')):
-            self.fail("Expected no tests, got %s" % test)
+            self.fail(f"Expected no tests, got {test}")
 
 
 class TestAttribPlugin(unittest.TestCase):
@@ -246,7 +246,7 @@ class TestAttribPlugin(unittest.TestCase):
         opt.attr = [ 'something,' ]
         plug.configure(opt, Config())
         self.assertEqual(plug.attribs, [[('something', True)]] )
-        
+
         if compat_24:
             opt.attr = None
             opt.eval_attr = [ 'weird >= 66' ]
@@ -431,8 +431,7 @@ class TestProfPlugin(unittest.TestCase):
             assert os.path.exists(pfile)
         finally:
             plug.finalize(None)
-        assert not os.path.exists(pfile), \
-               "finalize did not remove temp file %s" % pfile
+        assert not os.path.exists(pfile), f"finalize did not remove temp file {pfile}"
 
 if __name__ == '__main__':
     unittest.main()

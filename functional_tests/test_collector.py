@@ -39,7 +39,7 @@ class TestNoseTestCollector(unittest.TestCase):
         os.chdir(pwd)
         out = stream.getvalue()
         assert runner.result.wasSuccessful()
-        assert 'SKIP' in out, "SKIP not found in %s" % out
+        assert 'SKIP' in out, f"SKIP not found in {out}"
 
 
 if __name__ == '__main__':

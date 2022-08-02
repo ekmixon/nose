@@ -18,11 +18,11 @@ class TestImporter(unittest.TestCase):
         foo = os.path.join(where, 'foo')
         foobar = os.path.join(foo, 'bar')
         nose.importer.add_path(foobar)
-        
-        assert not foobar in sys.path
-        assert not foo in sys.path
+
+        assert foobar not in sys.path
+        assert foo not in sys.path
         assert where in sys.path
-        assert sys.path[0] == where, "%s first should be %s" % (sys.path, where)
+        assert sys.path[0] == where, f"{sys.path} first should be {where}"
 
     def test_import(self):
         where = os.path.abspath(os.path.join(os.path.dirname(__file__),

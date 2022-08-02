@@ -35,9 +35,11 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
-        self.assertEqual(res.testsRun, 0,
-                         "Expected to run 0 tests, ran %s" % res.testsRun)
+        stream = StringIO()
+        self.assertEqual(
+            res.testsRun, 0, f"Expected to run 0 tests, ran {res.testsRun}"
+        )
+
         assert res.wasSuccessful()
         assert not res.errors
         assert not res.failures
@@ -55,9 +57,11 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
-        self.assertEqual(res.testsRun, 6,
-                         "Expected to run 6 tests, ran %s" % res.testsRun)
+        stream = StringIO()
+        self.assertEqual(
+            res.testsRun, 6, f"Expected to run 6 tests, ran {res.testsRun}"
+        )
+
         assert res.wasSuccessful()
         assert not res.errors
         assert not res.failures
@@ -84,9 +88,11 @@ class TestTestProgram(unittest.TestCase):
                            config=Config(),
                            exit=False)
         res = runner.result
-        print stream.getvalue()
-        self.assertEqual(res.testsRun, 2,
-                         "Expected to run 2 tests, ran %s" % res.testsRun)
+        stream = StringIO()
+        self.assertEqual(
+            res.testsRun, 2, f"Expected to run 2 tests, ran {res.testsRun}"
+        )
+
         assert res.wasSuccessful()
         assert not res.errors
         assert not res.failures

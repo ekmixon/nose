@@ -8,5 +8,4 @@ def teardown():
 
 def test_one_mod_one():
     called.append('test_pak1.test_mod.test_one_mod_one')
-    pass
 

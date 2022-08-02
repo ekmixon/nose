@@ -53,8 +53,7 @@ class TestPluginManager(unittest.TestCase):
         man = PluginManager(plugins=expect)
         for plug in man:
             self.assertEqual(plug, expect.pop(0))
-        assert not expect, \
-               "Some plugins were not found by iteration: %s" % expect
+        assert not expect, f"Some plugins were not found by iteration: {expect}"
 
     def test_plugin_generative_method_errors_not_hidden(self):
         import nose.failure
@@ -62,8 +61,7 @@ class TestPluginManager(unittest.TestCase):
         loaded = list(pm.loadTestsFromModule('whatever'))
         self.assertEqual(len(loaded), 2)
         for test in loaded:
-            assert isinstance(test, nose.failure.Failure), \
-            "%s is not a failure" % test
+            assert isinstance(test, nose.failure.Failure), f"{test} is not a failure"
 
     def test_plugin_override(self):
         pm = PluginManager(plugins=[Plug2(), BetterPlug2()])

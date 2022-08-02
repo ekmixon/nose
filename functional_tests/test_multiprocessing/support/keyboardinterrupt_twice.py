@@ -10,9 +10,8 @@ logfile = os.environ['NOSE_MP_LOG']
 killfile = os.environ['NOSE_MP_KILL']
 
 def log(w):
-    f = open(logfile, 'a')
-    f.write(w+"\n")
-    f.close()
+    with open(logfile, 'a') as f:
+        f.write(w+"\n")
 
 def touch_killfile():
     f = open(killfile,'wb')

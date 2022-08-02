@@ -8,10 +8,7 @@ import logging
 from logging import StreamHandler
 import unittest
 
-if sys.version_info >= (2, 7):
-    py27 = True
-else:
-    py27 = False
+py27 = sys.version_info >= (2, 7)
 
 class TestLogCapturePlugin(object):
 
@@ -93,8 +90,8 @@ class TestLogCapturePlugin(object):
         repr_2 = repr(mutable)
         c.end()
         records = c.formatLogRecords()
-        eq_("mutable: DEBUG: %s" % (repr_1,), records[0])
-        eq_("mutable: DEBUG: %s" % (repr_2,), records[1])
+        eq_(f"mutable: DEBUG: {repr_1}", records[0])
+        eq_(f"mutable: DEBUG: {repr_2}", records[1])
 
     def test_loglevel(self):
         c = LogCapture()
@@ -181,12 +178,12 @@ class TestLogCapturePlugin(object):
         parser = OptionParser()
         c.addOptions(parser, env)
         options, args = parser.parse_args(['foo'])
-        print options, args
+        env = {'NOSE_LOGFILTER': 'foo,bar'}
         c.configure(options, Config())
         c.start()
         for name in ['foobar.something', 'foo', 'foo.x', 'abara', 'bar.quux']:
             log = logging.getLogger(name)
-            log.info("Hello %s" % name)
+            log.info(f"Hello {name}")
         c.end()
         records = c.formatLogRecords()
         eq_(3, len(records))
@@ -200,12 +197,12 @@ class TestLogCapturePlugin(object):
         parser = OptionParser()
         c.addOptions(parser, env)
         options, args = parser.parse_args(['foo'])
-        print options, args
+        env = {'NOSE_LOGFILTER': '-foo,-bar'}
         c.configure(options, Config())
         c.start()
         for name in ['foobar.something', 'foo', 'foo.x', 'abara', 'bar.quux']:
             log = logging.getLogger(name)
-            log.info("Hello %s" % name)
+            log.info(f"Hello {name}")
         c.end()
         records = c.formatLogRecords()
         eq_(2, len(records))
@@ -218,12 +215,12 @@ class TestLogCapturePlugin(object):
         parser = OptionParser()
         c.addOptions(parser, env)
         options, args = parser.parse_args(['foo'])
-        print options, args
+        env = {'NOSE_LOGFILTER': 'foo,-foo.bar'}
         c.configure(options, Config())
         c.start()
         for name in ['foo.yes', 'foo.bar', 'foo.bar.no', 'blah']:
             log = logging.getLogger(name)
-            log.info("Hello %s" % name)
+            log.info(f"Hello {name}")
         c.end()
         records = c.formatLogRecords()
         eq_(1, len(records))

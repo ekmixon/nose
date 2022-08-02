@@ -13,7 +13,7 @@ class TestConfigurationFromFile(unittest.TestCase):
         class MockLogger(logging.Logger):
             root = logging.RootLogger(logging.WARNING)
             manager = logging.Manager(root)
-        
+
         self.real_logger = logging.Logger
         self.real_root = logging.root
         logging.Logger = MockLogger

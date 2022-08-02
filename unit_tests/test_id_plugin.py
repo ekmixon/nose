@@ -11,9 +11,10 @@ class TestTestIdPlugin(unittest.TestCase):
         opt = mock.Bucket()
         opt.testIdFile = '.noseids'
         tid.configure(opt, c)
-        print tid.idfile
-        assert tid.idfile.startswith(c.workingDir), \
-               "%s is not under %s" % (tid.idfile, c.workingDir)
+        tid = TestId()
+        assert tid.idfile.startswith(
+            c.workingDir
+        ), f"{tid.idfile} is not under {c.workingDir}"
 
 
 if __name__ == '__main__':

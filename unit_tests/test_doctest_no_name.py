@@ -23,7 +23,7 @@ class TestDoctestErrorHandling(unittest.TestCase):
     def test_no_name(self):
         p = self.p
         mod = __import__('noname_wrapper')
-        loaded = [ t for t in p.loadTestsFromModule(mod) ]
+        loaded = list(p.loadTestsFromModule(mod))
         assert len(loaded) == 1, 'Need 1 test suite from noname_wrapper'
         found_tests = list(loaded[0])
         assert len(found_tests) == 1, 'Need 1 test from noname_wrapper suite'

@@ -112,7 +112,7 @@ class TestProgram(unittest.TestProgram):
         self.suite = suite
         self.exit = exit
         extra_args = {}
-        version = sys.version_info[0:2]
+        version = sys.version_info[:2]
         if version >= (2,7) and version != (3,0):
             extra_args['exit'] = exit
         unittest.TestProgram.__init__(
@@ -122,20 +122,14 @@ class TestProgram(unittest.TestProgram):
 
     def getAllConfigFiles(self, env=None):
         env = env or {}
-        if env.get('NOSE_IGNORE_CONFIG_FILES', False):
-            return []
-        else:
-            return all_config_files()
+        return [] if env.get('NOSE_IGNORE_CONFIG_FILES', False) else all_config_files()
 
     def makeConfig(self, env, plugins=None):
         """Load a Config, pre-filled with user config files if any are
         found.
         """
         cfg_files = self.getAllConfigFiles(env)
-        if plugins:
-            manager = PluginManager(plugins=plugins)
-        else:
-            manager = DefaultPluginManager()
+        manager = PluginManager(plugins=plugins) if plugins else DefaultPluginManager()
         return Config(
             env=env, files=cfg_files, plugins=manager)
 
@@ -245,7 +239,7 @@ class TestProgram(unittest.TestProgram):
                                                   subsequent_indent='    '))
                 print
 
-    def usage(cls):
+    def usage(self):
         import nose
         try:
             ld = nose.__loader__

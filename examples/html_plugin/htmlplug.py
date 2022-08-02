@@ -27,12 +27,12 @@ class HtmlOutput(Plugin):
     def addError(self, test, err):
         err = self.formatErr(err)
         self.html.append('<span>ERROR</span>')
-        self.html.append('<pre>%s</pre>' % err)
+        self.html.append(f'<pre>{err}</pre>')
             
     def addFailure(self, test, err):
         err = self.formatErr(err)
         self.html.append('<span>FAIL</span>')
-        self.html.append('<pre>%s</pre>' % err)
+        self.html.append(f'<pre>{err}</pre>')
 
     def finalize(self, result):
         self.html.append('<div>')
@@ -58,15 +58,13 @@ class HtmlOutput(Plugin):
     
     def setOutputStream(self, stream):
         # grab for own use
-        self.stream = stream        
-        # return dummy stream
+        self.stream = stream
         class dummy:
             def write(self, *arg):
                 pass
             def writeln(self, *arg):
                 pass
-        d = dummy()
-        return d
+        return dummy()
 
     def startContext(self, ctx):
         try:

@@ -15,7 +15,7 @@ class TestResultProxy(unittest.TestCase):
                     'startTest', 'stopTest', 'stop' ]
         for method in methods:
             m = getattr(proxy, method)
-            assert ismethod(m), "%s is not a method" % method
+            assert ismethod(m), f"{method} is not a method"
             
     def test_proxy_has_nose_methods(self):
         res = unittest.TestResult()
@@ -24,7 +24,7 @@ class TestResultProxy(unittest.TestCase):
         methods = [ 'beforeTest', 'afterTest' ]
         for method in methods:
             m = getattr(proxy, method)
-            assert ismethod(m), "%s is not a method" % method
+            assert ismethod(m), f"{method} is not a method"
 
     def test_proxy_proxies(self):
         from nose.case import Test

@@ -116,11 +116,16 @@ class TestNoseCases(unittest.TestCase):
         assert res.errors
 
     def test_FunctionTestCase_repr_is_consistent_with_mutable_args(self):
+
+
+
         class Foo(object):
             def __init__(self):
                 self.bar = 'unmodified'
+
             def __repr__(self):
-                return "Foo(%s)" % self.bar
+                return f"Foo({self.bar})"
+
 
         def test_foo(foo):
             pass
@@ -135,11 +140,16 @@ class TestNoseCases(unittest.TestCase):
             "case's __repr__")
 
     def test_MethodTestCase_repr_is_consistent_with_mutable_args(self):
+
+
+
         class Foo(object):
             def __init__(self):
                 self.bar = 'unmodified'
+
             def __repr__(self):
-                return "Foo(%s)" % self.bar
+                return f"Foo({self.bar})"
+
 
         class FooTester(object):
             def test_foo(self, foo):
@@ -211,6 +221,8 @@ class TestNoseTestWrapper(unittest.TestCase):
         def test():
             pass
 
+
+
         class Test:
             def test(self):
                 pass
@@ -218,11 +230,13 @@ class TestNoseTestWrapper(unittest.TestCase):
             def test_gen(self):
                 def tryit(i):
                     pass
-                for i in range (0, 2):
+
+                for i in range(2):
                     yield tryit, i
 
             def try_something(self, a, b):
                 pass
+
 
         fl = src(absfile(__file__))
         case = nose.case.Test(TC())

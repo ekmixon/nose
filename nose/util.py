@@ -71,13 +71,12 @@ def _ls_tree_lines(dir_path, skip_pattern,
                                          last_indent, last_branch_indent)
                 for x in subtree:
                     yield branch_ind + x
+
     for name, is_dir in entries[:-1]:
-        for line in ls_entry(name, is_dir, indent, branch_indent):
-            yield line
+        yield from ls_entry(name, is_dir, indent, branch_indent)
     if entries:
         name, is_dir = entries[-1]
-        for line in ls_entry(name, is_dir, last_indent, last_branch_indent):
-            yield line
+        yield from ls_entry(name, is_dir, last_indent, last_branch_indent)
 
 
 def absdir(path):
@@ -87,9 +86,7 @@ def absdir(path):
     if not os.path.isabs(path):
         path = os.path.normpath(os.path.abspath(os.path.join(os.getcwd(),
                                                              path)))
-    if path is None or not os.path.isdir(path):
-        return None
-    return path
+    return None if path is None or not os.path.isdir(path) else path
 
 
 def absfile(path, where=None):
@@ -100,7 +97,7 @@ def absfile(path, where=None):
     orig = path
     if where is None:
         where = os.getcwd()
-    if isinstance(where, list) or isinstance(where, tuple):
+    if isinstance(where, (list, tuple)):
         for maybe_path in where:
             maybe_abs = absfile(path, maybe_path)
             if maybe_abs is not None:
@@ -108,11 +105,10 @@ def absfile(path, where=None):
         return None
     if not os.path.isabs(path):
         path = os.path.normpath(os.path.abspath(os.path.join(where, path)))
-    if path is None or not os.path.exists(path):
-        if where != os.getcwd():
-            # try the cwd instead
-            path = os.path.normpath(os.path.abspath(os.path.join(os.getcwd(),
-                                                                 orig)))
+    if (path is None or not os.path.exists(path)) and where != os.getcwd():
+        # try the cwd instead
+        path = os.path.normpath(os.path.abspath(os.path.join(os.getcwd(),
+                                                             orig)))
     if path is None or not os.path.exists(path):
         return None
     if os.path.isdir(path):
@@ -126,10 +122,7 @@ def absfile(path, where=None):
 
 
 def anyp(predicate, iterable):
-    for item in iterable:
-        if predicate(item):
-            return True
-    return False
+    return any(predicate(item) for item in iterable)
 
 
 def file_like(name):
@@ -222,12 +215,10 @@ def getfilename(package, relativeTo=None):
     if relativeTo is None:
         relativeTo = os.getcwd()
     path = os.path.join(relativeTo, os.sep.join(package.split('.')))
-    if os.path.exists(path + '/__init__.py'):
+    if os.path.exists(f'{path}/__init__.py'):
         return path
-    filename = path + '.py'
-    if os.path.exists(filename):
-        return filename
-    return None
+    filename = f'{path}.py'
+    return filename if os.path.exists(filename) else None
 
 
 def getpackage(filename):
@@ -264,10 +255,7 @@ def getpackage(filename):
     if (os.path.isdir(src_file) or not src_file.endswith('.py')) and not ispackage(src_file):
         return None
     base, ext = os.path.splitext(os.path.basename(src_file))
-    if base == '__init__':
-        mod_parts = []
-    else:
-        mod_parts = [base]
+    mod_parts = [] if base == '__init__' else [base]
     path, part = os.path.split(os.path.split(src_file)[0])
     while part:
         if ispackage(os.path.join(path, part)):
@@ -287,7 +275,7 @@ def ln(label):
     """
     label_len = len(label) + 2
     chunk = (70 - label_len) // 2
-    out = '%s %s %s' % ('-' * chunk, label, '-' * chunk)
+    out = f"{'-' * chunk} {label} {'-' * chunk}"
     pad = 70 - len(out)
     if pad > 0:
         out = out + ('-' * pad)
@@ -317,7 +305,7 @@ def resolve_name(name, module=None):
                     raise
         parts = parts[1:]
     obj = module
-    log.debug("resolve: %s, %s, %s, %s", parts, name, obj, module)
+    log.debug("resolve: %s, %s, %s, %s", parts, name, obj, obj)
     for part in parts:
         obj = getattr(obj, part)
     return obj
@@ -337,13 +325,9 @@ def split_test_name(test):
     norm = os.path.normpath
     file_or_mod = test
     fn = None
-    if not ':' in test:
+    if ':' not in test:
         # only a file or mod part
-        if file_like(test):
-            return (norm(test), None, None)
-        else:
-            return (None, test, None)
-
+        return (norm(test), None, None) if file_like(test) else (None, test, None)
     # could be path|mod:callable, or a : in the file path someplace
     head, tail = os.path.split(test)
     if not head:
@@ -376,13 +360,12 @@ def split_test_name(test):
         else:
             file_part = tail
         file_or_mod = os.sep.join([head, file_part])
-    if file_or_mod:
-        if file_like(file_or_mod):
-            return (norm(file_or_mod), None, fn)
-        else:
-            return (None, file_or_mod, fn)
-    else:
+    if not file_or_mod:
         return (None, None, fn)
+    if file_like(file_or_mod):
+        return (norm(file_or_mod), None, fn)
+    else:
+        return (None, file_or_mod, fn)
 split_test_name.__test__ = False # do not collect
 
 
@@ -411,8 +394,7 @@ def test_address(test):
         return (src(file), module, call)
     if t == types.MethodType:
         cls_adr = test_address(test.im_class)
-        return (src(cls_adr[0]), cls_adr[1],
-                "%s.%s" % (cls_adr[2], test.__name__))
+        return src(cls_adr[0]), cls_adr[1], f"{cls_adr[2]}.{test.__name__}"
     # handle unittest.TestCase instances
     if isinstance(test, unittest.TestCase):
         if (hasattr(test, '_FunctionTestCase__testFunc') # pre 2.7
@@ -429,8 +411,7 @@ def test_address(test):
             method_name = test._TestCase__testMethodName
         except AttributeError:
             method_name = test._testMethodName
-        return (src(cls_adr[0]), cls_adr[1],
-                "%s.%s" % (cls_adr[2], method_name))
+        return src(cls_adr[0]), cls_adr[1], f"{cls_adr[2]}.{method_name}"
     if (hasattr(test, '__class__') and
             test.__class__.__module__ not in ('__builtin__', 'builtins')):
         return test_address(test.__class__)
@@ -481,9 +462,7 @@ def src(filename):
     if sys.platform.startswith('java') and filename.endswith('$py.class'):
         return '.'.join((filename[:-9], 'py'))
     base, ext = os.path.splitext(filename)
-    if ext in ('.pyc', '.pyo', '.py'):
-        return '.'.join((base, 'py'))
-    return filename
+    return '.'.join((base, 'py')) if ext in ('.pyc', '.pyo', '.py') else filename
 
 
 def regex_last_key(regex):
@@ -500,9 +479,8 @@ def regex_last_key(regex):
     ['.', '..', 'foo.py', 'lib', 'src', 'a_test', 'test']
     """
     def k(obj):
-        if regex.search(obj):
-            return (1, obj)
-        return (0, obj)
+        return (1, obj) if regex.search(obj) else (0, obj)
+
     return k
 
 
@@ -613,8 +591,8 @@ def transplant_func(func, module):
     from nose.tools import make_decorator
     if isgenerator(func):
         def newfunc(*arg, **kw):
-            for v in func(*arg, **kw):
-                yield v
+            yield from func(*arg, **kw)
+
     else:
         def newfunc(*arg, **kw):
             return func(*arg, **kw)

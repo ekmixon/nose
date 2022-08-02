@@ -55,11 +55,11 @@ def wiki_word(node):
                 # stop at class names
                 if p[0].upper() == p[0]:
                     break
-                link += '/' + p        
+                link += f'/{p}'
             node['refuri'] = link
             return True
         node['refuri'] = ''.join(map(ucfirst, words(text)))
-    print "Unknown ref %s -> %s" % (orig, node['refuri'])
+    orig = text = node.astext()
     del node['refname']
     node.resolved = True
     return True
@@ -148,7 +148,7 @@ class WikiVisitor(SparseNodeVisitor):
             href = '#' + node['refid']
         else:
             href = None
-        self.output.append('[' + href + ' ')
+        self.output.append(f'[{href} ')
 
     def depart_reference(self, node):
         self.output.append(']')
@@ -196,11 +196,13 @@ def runcmd(cmd):
 
 
 def section(doc, name):
-    m = re.search(r'(%s\n%s.*?)\n[^\n-]{3,}\n-{3,}\n' %
-                  (name, '-' * len(name)), doc, re.DOTALL)
-    if m:
+    if m := re.search(
+        r'(%s\n%s.*?)\n[^\n-]{3,}\n-{3,}\n' % (name, '-' * len(name)),
+        doc,
+        re.DOTALL,
+    ):
         return m.groups()[0]
-    raise Exception('Section %s not found' % name)
+    raise Exception(f'Section {name} not found')
 
 
 def wikirst(doc):
@@ -213,18 +215,21 @@ def plugin_interface():
     """
     b = pudge.browser.Browser(['nose.plugins.base'], None)
     m = b.modules()[0]
-    intf = list([ c for c in m.classes() if c.name ==
-                  'IPluginInterface'])[0]
+    intf = [c for c in m.classes() if c.name == 'IPluginInterface'][0]
+
     doc = wikirst(intf.doc())
     methods = [ m for m in intf.routines() if not m.name.startswith('_') ]
     methods.sort(lambda a, b: cmp(a.name, b.name))
     mdoc = []
     for m in methods:
-        # FIXME fix the arg list so literal os.environ is not in there
-        mdoc.append('*%s%s*\n\n' %  (m.name, formatargspec(m.obj)))
-        # FIXME this is resulting in poorly formatted doc sections
-        mdoc.append(' ' + m.doc().replace('\n', '\n '))
-        mdoc.append('\n\n')
+        mdoc.extend(
+            (
+                '*%s%s*\n\n' % (m.name, formatargspec(m.obj)),
+                ' ' + m.doc().replace('\n', '\n '),
+                '\n\n',
+            )
+        )
+
     doc = doc + ''.join(mdoc)
     return doc
 
@@ -252,16 +257,14 @@ def tools():
     mdoc = [top, '\n\n']
     for name, args, doc in funcs:
         mdoc.append("*%s%s*\n\n" % (name, args))
-        mdoc.append(' ' + doc.replace('\n', '\n '))
-        mdoc.append('\n\n')
+        mdoc.extend((' ' + doc.replace('\n', '\n '), '\n\n'))
     return ''.join(mdoc)
 
 
 def usage():
     conf = Config(plugins=BuiltinPluginManager())
     usage_text = conf.help(nose.main.__doc__).replace('mkwiki.py', 'nosetests')
-    out = '{{{\n%s\n}}}\n' % usage_text
-    return out
+    return '{{{\n%s\n}}}\n' % usage_text
 
 
 def mkwiki(path):
@@ -304,7 +307,7 @@ class Wiki(object):
 
     def filename(self, page):
         if not page.endswith('.wiki'):
-            page = page + '.wiki'
+            page = f'{page}.wiki'
         return page
         
     def get_page(self, page):
@@ -356,7 +359,7 @@ class Wiki(object):
         headers, current = self.get_page(page)
         self.set_docs(page, headers, current, doc)
         if page in self.newpages:
-            runcmd('svn add %s' % self.filename(page))
+            runcmd(f'svn add {self.filename(page)}')
 
             
 def findwiki(root):

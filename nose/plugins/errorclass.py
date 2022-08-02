@@ -106,9 +106,10 @@ class MetaErrorClass(type):
         for name, detail in attr.items():
             if isinstance(detail, ErrorClass):
                 attr.pop(name)
-                for cls in detail:
-                    errorClasses.append(
-                        (cls, (name, detail.label, detail.isfailure)))
+                errorClasses.extend(
+                    (cls, (name, detail.label, detail.isfailure)) for cls in detail
+                )
+
         super(MetaErrorClass, self).__init__(name, bases, attr)
         self.errorClasses = tuple(errorClasses)
 

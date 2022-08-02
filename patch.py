@@ -43,7 +43,7 @@ if sys.version_info >= (3,):
 else:
     # Open files with universal newline support but no newline translation (2.x)
     def open(filename, mode='r'):
-        return _open(filename, mode + 'b')
+      return _open(filename, f'{mode}b')
 
     # Python 3.x has changed iter.next() to be next(iter) instead, so for
     # backwards compatibility, we'll just define a next() function under 2.x
@@ -79,10 +79,9 @@ SVN = SUBVERSION = "svn"
 def fromfile(filename):
   """ Parse patch file and return Patch() object
   """
-  info("reading patch from file %s" % filename)
-  fp = open(filename, "r")
-  patch = Patch(fp)
-  fp.close()
+  info(f"reading patch from file {filename}")
+  with open(filename, "r") as fp:
+    patch = Patch(fp)
   return patch
 
 

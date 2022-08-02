@@ -4,8 +4,6 @@ from time import sleep
 class Test1(object):
     def test1(self):
         sleep(1)
-        pass
 class Test2(object):
     def test2(self):
         sleep(1)
-        pass

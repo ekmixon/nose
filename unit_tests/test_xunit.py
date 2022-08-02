@@ -13,12 +13,12 @@ from nose.exc import SkipTest
 from nose.config import Config
 
 def mktest():
+
     class TC(unittest.TestCase):
         def runTest(self):
             pass
     TC.__qualname__ = TC.__name__
-    test = TC()
-    return test
+    return TC()
 
 mktest.__test__ = False
 
@@ -28,7 +28,7 @@ time_taken = re.compile(r'\d\.\d\d')
 class TestSplitId(unittest.TestCase):
 
     def check_id_split(self, cls, name):
-        split = id_split('%s.%s' % (cls, name))
+        split = id_split(f'{cls}.{name}')
         eq_(split[0], cls)
         eq_(split[1], name)
 
@@ -134,12 +134,12 @@ class BaseTestXMLOutputWithXML(unittest.TestCase):
         os.unlink(self.xmlfile)
 
     def get_xml_report(self):
+
         class DummyStream:
             pass
         self.x.report(DummyStream())
-        f = open(self.xmlfile, 'rb')
-        data = f.read()
-        f.close()
+        with open(self.xmlfile, 'rb') as f:
+            data = f.read()
         return data
 
 class TestXMLOutputWithXMLAndPrefix(BaseTestXMLOutputWithXML):
@@ -163,34 +163,37 @@ class TestXMLOutputWithXMLAndPrefix(BaseTestXMLOutputWithXML):
             assert ('<testcase classname="%s" name="runTest"' % expected_classname) in result
 
     def test_addSuccess_default(self):
-        self.configure([
-            "--with-xunit",
-            "--xunit-file=%s" % self.xmlfile,
-            "--xunit-prefix-with-testsuite-name"
-        ])
+        self.configure(
+            [
+                "--with-xunit",
+                f"--xunit-file={self.xmlfile}",
+                "--xunit-prefix-with-testsuite-name",
+            ]
+        )
+
 
         self._assert_testcase_classname('nosetests.test_xunit.TC')
 
     def test_addSuccess_custom(self):
         custom_testsuite_name = 'eartest'
-        self.configure([
-            "--with-xunit",
-            "--xunit-file=%s" % self.xmlfile,
-            "--xunit-testsuite-name=%s" % custom_testsuite_name,
-            "--xunit-prefix-with-testsuite-name"
-        ])
+        self.configure(
+            [
+                "--with-xunit",
+                f"--xunit-file={self.xmlfile}",
+                f"--xunit-testsuite-name={custom_testsuite_name}",
+                "--xunit-prefix-with-testsuite-name",
+            ]
+        )
 
-        self._assert_testcase_classname("%s.test_xunit.TC" % custom_testsuite_name)
+
+        self._assert_testcase_classname(f"{custom_testsuite_name}.test_xunit.TC")
 
 
 
 class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
     def setUp(self):
         super(TestXMLOutputWithXML, self).setUp()
-        self.configure([
-            "--with-xunit",
-            "--xunit-file=%s" % self.xmlfile
-        ])
+        self.configure(["--with-xunit", f"--xunit-file={self.xmlfile}"])
 
     def test_addFailure(self):
         test = mktest()
@@ -203,8 +206,7 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addFailure(test, some_err)
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             eq_(tree.attrib['name'], "nosetests")
@@ -216,11 +218,13 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
             tc = tree.find("testcase")
             eq_(tc.attrib['classname'], "test_xunit.TC")
             eq_(tc.attrib['name'], "runTest")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
 
             err = tc.find("failure")
-            eq_(err.attrib['type'], "%s.AssertionError" % (AssertionError.__module__,))
+            eq_(err.attrib['type'], f"{AssertionError.__module__}.AssertionError")
             err_lines = err.text.strip().split("\n")
             eq_(err_lines[0], 'Traceback (most recent call last):')
             eq_(err_lines[-1], 'AssertionError: one is not \'equal\' to two')
@@ -246,13 +250,14 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addFailure(test, some_err)
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             tc = tree.find("testcase")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
         else:
             # this is a dumb test for 2.4-
             assert '<?xml version="1.0" encoding="UTF-8"?>' in result
@@ -270,8 +275,7 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addError(test, some_err)
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             eq_(tree.attrib['name'], "nosetests")
@@ -283,11 +287,13 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
             tc = tree.find("testcase")
             eq_(tc.attrib['classname'], "test_xunit.TC")
             eq_(tc.attrib['name'], "runTest")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
 
             err = tc.find("error")
-            eq_(err.attrib['type'], "%s.RuntimeError" % (RuntimeError.__module__,))
+            eq_(err.attrib['type'], f"{RuntimeError.__module__}.RuntimeError")
             err_lines = err.text.strip().split("\n")
             eq_(err_lines[0], 'Traceback (most recent call last):')
             eq_(err_lines[-1], 'RuntimeError: some error happened')
@@ -340,13 +346,14 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addError(test, some_err)
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             tc = tree.find("testcase")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
         else:
             # this is a dumb test for 2.4-
             assert '<?xml version="1.0" encoding="UTF-8"?>' in result
@@ -359,8 +366,7 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addSuccess(test, (None,None,None))
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             eq_(tree.attrib['name'], "nosetests")
@@ -372,8 +378,10 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
             tc = tree.find("testcase")
             eq_(tc.attrib['classname'], "test_xunit.TC")
             eq_(tc.attrib['name'], "runTest")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
         else:
             # this is a dumb test for 2.4-
             assert '<?xml version="1.0" encoding="UTF-8"?>' in result
@@ -388,13 +396,14 @@ class TestXMLOutputWithXML(BaseTestXMLOutputWithXML):
         self.x.addSuccess(test, (None,None,None))
 
         result = self.get_xml_report()
-        print result
-
+        test = mktest()
         if self.ET:
             tree = self.ET.fromstring(result)
             tc = tree.find("testcase")
-            assert time_taken.match(tc.attrib['time']), (
-                        'Expected decimal time: %s' % tc.attrib['time'])
+            assert time_taken.match(
+                tc.attrib['time']
+            ), f"Expected decimal time: {tc.attrib['time']}"
+
         else:
             # this is a dumb test for 2.4-
             assert '<?xml version="1.0" encoding="UTF-8"?>' in result

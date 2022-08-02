@@ -27,9 +27,7 @@ class TestImporter(unittest.TestCase):
             self.has_symlinks = True
 
     def tearDown(self):
-        to_del = [ m for m in sys.modules.keys() if
-                   m not in self._mods ]
-        if to_del:
+        if to_del := [m for m in sys.modules.keys() if m not in self._mods]:
             for mod in to_del:
                 del sys.modules[mod]
         sys.modules.update(self._mods)
@@ -125,14 +123,14 @@ class TestImporter(unittest.TestCase):
         d1 = os.path.join(self.dir, 'dir1')
         m1 = imp.importFromDir(d1, 'mod')
         m2 = imp.importFromDir(d1, 'mod')
-        assert m1 is m2, "%s is not %s" % (m1, m2)
+        assert m1 is m2, f"{m1} is not {m2}"
 
     def test_cached_no_reload_dotted(self):
         imp = self.imp
         d1 = os.path.join(self.dir, 'dir1')
         p1 = imp.importFromDir(d1, 'pak.mod')
         p2 = imp.importFromDir(d1, 'pak.mod')
-        assert p1 is p2, "%s is not %s" % (p1, p2)
+        assert p1 is p2, f"{p1} is not {p2}"
 
     def test_import_sets_sys_modules(self):
         imp = self.imp

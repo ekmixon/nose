@@ -132,9 +132,7 @@ def get_method_attr(method, cls, attr_name, default = False):
     value = getattr(method, attr_name, Missing)
     if value is Missing and cls is not None:
         value = getattr(cls, attr_name, Missing)
-    if value is Missing:
-        return default
-    return value
+    return default if value is Missing else value
 
 
 class ContextHelper:
@@ -254,22 +252,15 @@ class AttributeSelector(Plugin):
                         break
                 elif type(attr) in (list, tuple):
                     # value must be found in the list attribute
-                    if not str(value).lower() in [str(x).lower()
-                                                  for x in attr]:
+                    if str(value).lower() not in [str(x).lower() for x in attr]:
                         match = False
                         break
-                else:
-                    # value must match, convert to string and compare
-                    if (value != attr
+                elif (value != attr
                         and str(value).lower() != str(attr).lower()):
-                        match = False
-                        break
+                    match = False
+                    break
             any = any or match
-        if any:
-            # not True because we don't want to FORCE the selection of the
-            # item, only say that it is acceptable
-            return None
-        return False
+        return None if any else False
 
     def wantFunction(self, function):
         """Accept the function if its attributes match.

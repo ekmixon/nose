@@ -526,7 +526,7 @@ class MultiProcessTestRunner(TextTestRunner):
 
         return result
 
-    def addtask(testQueue,tasks,case):
+    def addtask(self, tasks, case):
         arg = None
         if isinstance(case,nose.case.Test) and hasattr(case.test,'arg'):
             # this removes the top level descriptor and allows real function
@@ -534,7 +534,7 @@ class MultiProcessTestRunner(TextTestRunner):
             case.test.descriptor = None
             arg = case.test.arg
         test_addr = MultiProcessTestRunner.address(case)
-        testQueue.put((test_addr,arg), block=False)
+        self.put((test_addr,arg), block=False)
         if arg is not None:
             test_addr += str(arg)
         if tasks is not None:
@@ -542,17 +542,17 @@ class MultiProcessTestRunner(TextTestRunner):
         return test_addr
     addtask = staticmethod(addtask)
 
-    def address(case):
-        if hasattr(case, 'address'):
-            file, mod, call = case.address()
-        elif hasattr(case, 'context'):
-            file, mod, call = test_address(case.context)
+    def address(self):
+        if hasattr(self, 'address'):
+            file, mod, call = self.address()
+        elif hasattr(self, 'context'):
+            file, mod, call = test_address(self.context)
         else:
-            raise Exception("Unable to convert %s to address" % case)
+            raise Exception(f"Unable to convert {self} to address")
         parts = []
         if file is None:
             if mod is None:
-                raise Exception("Unaddressable case %s" % case)
+                raise Exception(f"Unaddressable case {self}")
             else:
                 parts.append(mod)
         else:
@@ -570,9 +570,10 @@ class MultiProcessTestRunner(TextTestRunner):
     def nextBatch(self, test):
         # allows tests or suites to mark themselves as not safe
         # for multiprocess execution
-        if hasattr(test, 'context'):
-            if not getattr(test.context, '_multiprocess_', True):
-                return
+        if hasattr(test, 'context') and not getattr(
+            test.context, '_multiprocess_', True
+        ):
+            return
 
         if ((isinstance(test, ContextSuite)
              and test.hasFixtures(self.checkCanSplit))
@@ -596,10 +597,9 @@ class MultiProcessTestRunner(TextTestRunner):
             # fixtures at any deeper level, so we need to examine it all
             # the way down to the case level
             for case in test:
-                for batch in self.nextBatch(case):
-                    yield batch
+                yield from self.nextBatch(case)
 
-    def checkCanSplit(context, fixt):
+    def checkCanSplit(self, fixt):
         """
         Callback that we use to check whether the fixtures found in a
         context or ancestor are ones we care about.
@@ -608,18 +608,12 @@ class MultiProcessTestRunner(TextTestRunner):
         _multiprocess_can_split_. So if we see that, we return False to
         disregard those fixtures.
         """
-        if not fixt:
-            return False
-        if getattr(context, '_multiprocess_can_split_', False):
-            return False
-        return True
+        return not getattr(self, '_multiprocess_can_split_', False) if fixt else False
     checkCanSplit = staticmethod(checkCanSplit)
 
     def sharedFixtures(self, case):
         context = getattr(case, 'context', None)
-        if not context:
-            return False
-        return getattr(context, '_multiprocess_shared_', False)
+        return getattr(context, '_multiprocess_shared_', False) if context else False
 
     def consolidate(self, result, batch_result):
         log.debug("batch result is %s" , batch_result)

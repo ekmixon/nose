@@ -55,8 +55,11 @@ class ConfiguredDefaultsOptionParser(object):
     def _configTuples(self, cfg, filename):
         config = []
         if self._config_section in cfg.sections():
-            for name, value in cfg.items(self._config_section):
-                config.append((name, value, filename))
+            config.extend(
+                (name, value, filename)
+                for name, value in cfg.items(self._config_section)
+            )
+
         return config
 
     def _readFromFilenames(self, filenames):
@@ -100,7 +103,7 @@ class ConfiguredDefaultsOptionParser(object):
         return config
 
     def _processConfigValue(self, name, value, values, parser):
-        opt_str = '--' + name
+        opt_str = f'--{name}'
         option = parser.get_option(opt_str)
         if option is None:
             raise NoSuchOptionError(name)
@@ -289,9 +292,8 @@ class Config(object):
         if options.testNames is not None:
             self.testNames.extend(tolist(options.testNames))
 
-        if options.py3where is not None:
-            if sys.version_info >= (3,):
-                options.where = options.py3where
+        if options.py3where is not None and sys.version_info >= (3,):
+            options.where = options.py3where
 
         # `where` is an append action, so it can't have a default value
         # in the parser, or that default will always be in the list
@@ -373,12 +375,12 @@ class Config(object):
             debugLogAbsPath = os.path.abspath(self.debugLog)
             for h in logger.handlers:
                 if type(h) == logging.FileHandler and \
-                        h.baseFilename == debugLogAbsPath:
+                            h.baseFilename == debugLogAbsPath:
                     found = True
         else:
             for h in logger.handlers:
                 if type(h) == logging.StreamHandler and \
-                        h.stream == self.logStream:
+                            h.stream == self.logStream:
                     found = True
         if not found:
             logger.addHandler(handler)
@@ -638,23 +640,21 @@ def all_config_files():
     in the current working directory.
     """
     user = user_config_files()
-    if os.path.exists('setup.cfg'):
-        return user + ['setup.cfg']
-    return user
+    return user + ['setup.cfg'] if os.path.exists('setup.cfg') else user
 
 
 # used when parsing config files
 def flag(val):
     """Does the value look like an on/off flag?"""
-    if val == 1:
-        return True
-    elif val == 0:
+    if val == 0:
         return False
+    elif val == 1:
+        return True
     val = str(val)
     if len(val) > 5:
         return False
-    return val.upper() in ('1', '0', 'F', 'T', 'TRUE', 'FALSE', 'ON', 'OFF')
+    return val.upper() in {'1', '0', 'F', 'T', 'TRUE', 'FALSE', 'ON', 'OFF'}
 
 
 def _bool(val):
-    return str(val).upper() in ('1', 'T', 'TRUE', 'ON')
+    return str(val).upper() in {'1', 'T', 'TRUE', 'ON'}

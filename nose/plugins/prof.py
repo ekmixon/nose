@@ -53,7 +53,7 @@ class Profile(Plugin):
                           help="Restrict profiler output. See help for "
                           "pstats.Stats for details")
 
-    def available(cls):
+    def available(self):
         return hotshot is not None
     available = classmethod(available)
 
@@ -88,10 +88,11 @@ class Profile(Plugin):
         """
         if not self.available():
             return
-        log.debug('preparing test %s' % test)
+        log.debug(f'preparing test {test}')
         def run_and_profile(result, prof=self.prof, test=test):
             self._create_pfile()
             prof.runcall(test, result)
+
         return run_and_profile
 
     def report(self, stream):

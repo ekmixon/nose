@@ -57,14 +57,14 @@ def autoplugin_directive(dirname, arguments, options, content, lineno,
         for entry in dir(mod):
             obj = getattr(mod, entry)
             if isclass(obj) and issubclass(obj, Plugin) and obj is not Plugin:
-                plug_name = '%s.%s' % (mod_name, entry)
+                plug_name = f'{mod_name}.{entry}'
                 break
-    
+
     # mod docstring
     rst = ViewList()
     rst.append('.. automodule :: %s\n' % mod_name, '<autodoc>')
     rst.append('', '<autodoc>')
-    
+
     # options
     rst.append('Options', '<autodoc>')
     rst.append('-------', '<autodoc>')
@@ -76,19 +76,19 @@ def autoplugin_directive(dirname, arguments, options, content, lineno,
     for opt in opts:
         rst.append(opt.options(), '<autodoc>')
         rst.append('   \n', '<autodoc>')
-        rst.append('   ' + opt.help + '\n', '<autodoc>')
+        rst.append(f'   {opt.help}' + '\n', '<autodoc>')
         rst.append('\n', '<autodoc>')
-        
+
     # plugin class
     rst.append('Plugin', '<autodoc>')
     rst.append('------', '<autodoc>')
     rst.append('', '<autodoc>')
-    
+
     rst.append('.. autoclass :: %s\n' % plug_name, '<autodoc>')
     rst.append('   :members:\n', '<autodoc>')
     rst.append('   :show-inheritance:\n', '<autodoc>')
     rst.append('', '<autodoc>')
-    
+
     # source
     rst.append('Source', '<autodoc>')
     rst.append('------', '<autodoc>')
@@ -99,7 +99,7 @@ def autoplugin_directive(dirname, arguments, options, content, lineno,
             '<autodoc>')
     rst.append('   :literal:\n', '<autodoc>')
     rst.append('', '<autodoc>')
-    
+
     node = nodes.section()
     node.document = state.document
     surrounding_title_styles = state.memo.title_styles
@@ -129,8 +129,8 @@ def autohelp_directive(dirname, arguments, options, content, lineno,
     for opt in parser:
         rst.append(opt.options(), '<autodoc>')
         rst.append('   \n', '<autodoc>')
-        rst.append('   ' + opt.help + '\n', '<autodoc>')
-        rst.append('\n', '<autodoc>')    
+        rst.append(f'   {opt.help}' + '\n', '<autodoc>')
+        rst.append('\n', '<autodoc>')
     node = nodes.section()
     node.document = state.document
     surrounding_title_styles = state.memo.title_styles
@@ -176,7 +176,7 @@ class Opt(object):
         for optstring in self.opts:
             desc = optstring
             if self.action not in ('store_true', 'store_false'):
-                desc += '=%s' % self.meta(optstring)
+                desc += f'={self.meta(optstring)}'
             buf.append(desc)
         return '.. cmdoption :: ' + ', '.join(buf)
 

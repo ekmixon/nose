@@ -26,32 +26,31 @@ class TestDiscoveryMode(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'idp')
 
     def test_ids_added_to_output(self):
-        #print '>' * 70
-        #print str(self.output)
-        #print '<' * 70
+             #print '>' * 70
+             #print str(self.output)
+             #print '<' * 70
 
-        for line in self.output:
-            if line.startswith('='):
-                break
-            if not line.strip():
-                continue
-            if 'test_gen' in line and not '(0,)' in line:
-                assert not line.startswith('#'), \
-                       "Generated test line '%s' should not have id" % line
-            else:
-                assert line.startswith('#'), \
-                       "Test line '%s' missing id" % line.strip()
+         for line in self.output:
+              if line.startswith('='):
+                  break
+              if not line.strip():
+                  continue
+              if 'test_gen' in line and '(0,)' not in line:
+                   assert not line.startswith('#'), \
+                              "Generated test line '%s' should not have id" % line
+              else:
+                   assert line.startswith('#'), \
+                              "Test line '%s' missing id" % line.strip()
             
     # test that id file is written
     def test_id_file_contains_ids_seen(self):
-        assert os.path.exists(idfile)
-        fh = open(idfile, 'rb')
-        ids = load(fh)['ids']
-        fh.close()
-        assert ids
-        assert ids.keys()
-        self.assertEqual(map(int, ids.keys()), ids.keys())
-        assert ids.values()
+         assert os.path.exists(idfile)
+         with open(idfile, 'rb') as fh:
+              ids = load(fh)['ids']
+         assert ids
+         assert ids.keys()
+         self.assertEqual(map(int, ids.keys()), ids.keys())
+         assert ids.values()
 
 
 class TestLoadNamesMode(PluginTester, unittest.TestCase):
@@ -68,23 +67,22 @@ class TestLoadNamesMode(PluginTester, unittest.TestCase):
         return None
 
     def test_load_ids(self):
-        #print '#' * 70
-        #print str(self.output)
-        #print '#' * 70
+         #print '#' * 70
+         #print str(self.output)
+         #print '#' * 70
 
-        for line in self.output:
-            if line.startswith('#'):
-                assert line.startswith('#2 ') or line.startswith('#5 '), \
-                       "Unexpected test line '%s'" % line
-        assert os.path.exists(idfile)
-        fh = open(idfile, 'rb')
-        ids = load(fh)
-        fh.close()
-        assert ids
-        assert ids.keys()
-        ids = ids['ids']
-        self.assertEqual(filter(lambda i: int(i), ids.keys()), ids.keys())
-        assert len(ids.keys()) > 2
+         for line in self.output:
+             if line.startswith('#'):
+                 assert line.startswith('#2 ') or line.startswith('#5 '), \
+                            "Unexpected test line '%s'" % line
+         assert os.path.exists(idfile)
+         with open(idfile, 'rb') as fh:
+              ids = load(fh)
+         assert ids
+         assert ids.keys()
+         ids = ids['ids']
+         self.assertEqual(filter(lambda i: int(i), ids.keys()), ids.keys())
+         assert len(ids.keys()) > 2
 
 
 class TestLoadNamesMode_2(PluginTester, unittest.TestCase):
@@ -102,16 +100,13 @@ class TestLoadNamesMode_2(PluginTester, unittest.TestCase):
         return None
 
     def test_load_ids(self):
-        #print '%' * 70
-        #print str(self.output)
-        #print '%' * 70
+             #print '%' * 70
+             #print str(self.output)
+             #print '%' * 70
 
-        count = 0
-        for line in self.output:
-            if line.startswith('#'):
-                count += 1
-        self.assertEqual(count, 1)
-        teardown()
+         count = sum(1 for line in self.output if line.startswith('#'))
+         self.assertEqual(count, 1)
+         teardown()
 
 
 class TestWithDoctest_1(PluginTester, unittest.TestCase):
@@ -121,31 +116,30 @@ class TestWithDoctest_1(PluginTester, unittest.TestCase):
     suitepath = os.path.join(support, 'idp')
 
     def test_doctests_get_ids(self):
-        #print '>' * 70
-        #print str(self.output)
-        #print '>' * 70
+         #print '>' * 70
+         #print str(self.output)
+         #print '>' * 70
 
-        last = None
-        for line in self.output:
-            if line.startswith('='):
-                break
-            if not line.strip():
-                continue
-            # assert line startswith # or test part matches last
-            m = test_part.match(line.rstrip())
-            assert m
-            idx, name = m.groups()
-            assert idx or last is None or name == last, \
-                   "Expected an id on line %s" % line.strip()
-            last = name
-            
-        fh = open(idfile, 'rb')
-        ids = load(fh)['ids']
-        fh.close()
-        for key, (file, mod, call) in ids.items():
-            assert mod != 'doctest', \
-                   "Doctest test was incorrectly identified as being part of "\
-                   "the doctest module itself (#%s)" % key
+         last = None
+         for line in self.output:
+              if line.startswith('='):
+                  break
+              if not line.strip():
+                  continue
+              # assert line startswith # or test part matches last
+              m = test_part.match(line.rstrip())
+              assert m
+              idx, name = m.groups()
+              assert (idx or last is None
+                      or name == last), f"Expected an id on line {line.strip()}"
+              last = name
+
+         with open(idfile, 'rb') as fh:
+              ids = load(fh)['ids']
+         for key, (file, mod, call) in ids.items():
+             assert mod != 'doctest', \
+                        "Doctest test was incorrectly identified as being part of "\
+                        "the doctest module itself (#%s)" % key
 
 
 class TestWithDoctest_2(PluginTester, unittest.TestCase):

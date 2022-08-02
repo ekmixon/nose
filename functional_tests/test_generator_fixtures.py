@@ -15,14 +15,13 @@ def inner_teardown():
 
 def test_gen():
     called[:] = []
-    for i in range(0, 5):
+    for i in range(5):
         yield check, i
         
 def check(i):
     expect = ['outer_setup']
-    for x in range(0, i):
-        expect.append('inner_setup')
-        expect.append('inner_teardown')
+    for _ in range(i):
+        expect.extend(('inner_setup', 'inner_teardown'))
     expect.append('inner_setup')
     eq_(called, expect)
 

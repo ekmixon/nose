@@ -8,29 +8,31 @@ class TestPluginInterfaces(unittest.TestCase):
         from nose.loader import TestLoader
         from nose.selector import Selector
 
-        
+
         exclude = [ 'loadTestsFromGenerator',
                     'loadTestsFromGeneratorMethod'
                     ]
-        
+
         selfuncs = [ f for f in dir(Selector)
                      if f.startswith('want') ]
-        loadfuncs = [ f for f in dir(TestLoader)
-                      if f.startswith('load') and not f in exclude ]
-        
+        loadfuncs = [
+            f for f in dir(TestLoader) if f.startswith('load') and f not in exclude
+        ]
+
+
         others = ['addDeprecated', 'addError', 'addFailure',
                   'addSkip', 'addSuccess', 'startTest', 'stopTest',
                   'prepareTest', 'begin', 'report'
                   ] 
 
         expect = selfuncs + loadfuncs + others
-        
+
         pd = dir(IPluginInterface)
-        
+
         for f in expect:
-            assert f in pd, "No %s in IPluginInterface" % f
+            assert f in pd, f"No {f} in IPluginInterface"
             assert getattr(IPluginInterface, f).__doc__, \
-                "No docs for %f in IPluginInterface" % f
+                    "No docs for %f in IPluginInterface" % f
             
     def test_no_instantiate(self):
         try:

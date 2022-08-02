@@ -20,7 +20,7 @@ def decorate(func):
 def dec_replace(func):
     def newfunc():
         func()
-        pass
+
     return newfunc
 
 def dec_makedecorator(func):

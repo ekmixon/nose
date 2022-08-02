@@ -34,7 +34,7 @@ class Plugin(object):
         if self.name is None:
             self.name = self.__class__.__name__.lower()
         if self.enableOpt is None:
-            self.enableOpt = "enable_plugin_%s" % self.name.replace('-', '_')
+            self.enableOpt = f"enable_plugin_{self.name.replace('-', '_')}"
 
     def addOptions(self, parser, env=None):
         """Add command-line options for this plugin.
@@ -80,14 +80,15 @@ class Plugin(object):
         OptionConflictErrors. If you override this method and want the default
         --with-$name option to be registered, be sure to call super().
         """
-        env_opt = 'NOSE_WITH_%s' % self.name.upper()
+        env_opt = f'NOSE_WITH_{self.name.upper()}'
         env_opt = env_opt.replace('-', '_')
-        parser.add_option("--with-%s" % self.name,
-                          action="store_true",
-                          dest=self.enableOpt,
-                          default=env.get(env_opt),
-                          help="Enable plugin %s: %s [%s]" %
-                          (self.__class__.__name__, self.help(), env_opt))
+        parser.add_option(
+            f"--with-{self.name}",
+            action="store_true",
+            dest=self.enableOpt,
+            default=env.get(env_opt),
+            help=f"Enable plugin {self.__class__.__name__}: {self.help()} [{env_opt}]",
+        )
 
     def configure(self, options, conf):
         """Configure the plugin and system, based on selected options.

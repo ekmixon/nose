@@ -88,8 +88,7 @@ class PluginProxy(object):
         try:
             self.method = getattr(self.interface, call)
         except AttributeError:
-            raise AttributeError("%s is not a valid %s method"
-                                 % (call, self.interface.__name__))
+            raise AttributeError(f"{call} is not a valid {self.interface.__name__} method")
         self.call = self.makeCall(call)
         self.plugins = []
         for p in plugins:
@@ -151,8 +150,7 @@ class PluginProxy(object):
             try:
                 result = meth(*arg, **kw)
                 if result is not None:
-                    for r in result:
-                        yield r
+                    yield from result
             except (KeyboardInterrupt, SystemExit):
                 raise
             except:
@@ -442,7 +440,7 @@ class RestrictedPluginManager(DefaultPluginManager):
             self._excludedOpts = OptionParser(add_help_option=False)
             for plugin in self.excluded:
                 plugin.options(self._excludedOpts, env={})
-        return self._excludedOpts.get_option('--' + name)
+        return self._excludedOpts.get_option(f'--{name}')
 
     def loadPlugins(self):
         if self.load:

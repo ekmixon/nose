@@ -34,9 +34,9 @@ class FilterSet(object):
         self.inclusive, self.exclusive = self._partition(filter_components)
 
     # @staticmethod
-    def _partition(components):
+    def _partition(self):
         inclusive, exclusive = [], []
-        for component in components:
+        for component in self:
             if component.startswith('-'):
                 exclusive.append(component[1:])
             else:
@@ -46,29 +46,23 @@ class FilterSet(object):
 
     def allow(self, record):
         """returns whether this record should be printed"""
-        if not self:
-            # nothing to filter
-            return True
-        return self._allow(record) and not self._deny(record)
+        return self._allow(record) and not self._deny(record) if self else True
 
     # @staticmethod
     def _any_match(matchers, record):
         """return the bool of whether `record` starts with
         any item in `matchers`"""
         def record_matches_key(key):
-            return record == key or record.startswith(key + '.')
+            return record == key or record.startswith(f'{key}.')
+
         return anyp(bool, map(record_matches_key, matchers))
     _any_match = staticmethod(_any_match)
 
     def _allow(self, record):
-        if not self.inclusive:
-            return True
-        return self._any_match(self.inclusive, record)
+        return self._any_match(self.inclusive, record) if self.inclusive else True
 
     def _deny(self, record):
-        if not self.exclusive:
-            return False
-        return self._any_match(self.exclusive, record)
+        return self._any_match(self.exclusive, record) if self.exclusive else False
 
 
 class MyMemoryHandler(Handler):

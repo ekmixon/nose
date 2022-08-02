@@ -78,7 +78,7 @@ else:
                 continue
             long_name = opt._long_opts[0][2:]
             if opt.action not in ('store_true', 'store_false'):
-                long_name = long_name + "="
+                long_name = f"{long_name}="
             short_name = None
             if opt._short_opts:
                 short_name =  opt._short_opts[0][1:]
@@ -130,15 +130,13 @@ else:
 
                 build_ext = self.get_finalized_command('build_ext')
                 build_ext.inplace = 0
-                build_ext.run()
             else:
                 self.run_command('egg_info')
 
                 # Build extensions in-place
                 build_ext = self.get_finalized_command('build_ext')
                 build_ext.inplace = 1
-                build_ext.run()
-
+            build_ext.run()
             if self.distribution.install_requires:
                 self.distribution.fetch_build_eggs(
                     self.distribution.install_requires)
@@ -147,7 +145,7 @@ else:
                     self.distribution.tests_require)
 
             ei_cmd = self.get_finalized_command("egg_info")
-            argv = ['nosetests', '--where', ei_cmd.egg_base] 
+            argv = ['nosetests', '--where', ei_cmd.egg_base]
             for (option_name, cmd_name) in self.option_to_cmds.items():
                 if option_name in option_blacklist:
                     continue
@@ -159,7 +157,7 @@ else:
 
         def cfgToArg(self, optname, value):
             argv = []
-            long_optname = '--' + optname
+            long_optname = f'--{optname}'
             opt = self.__parser.get_option(long_optname)
             if opt.action in ('store_true', 'store_false'):
                 if not flag(value):

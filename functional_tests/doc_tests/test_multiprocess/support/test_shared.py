@@ -7,10 +7,9 @@ flag = os.path.join(here, 'shared_flag')
 _multiprocess_shared_ = 1
 
 def _log(val):
-    ff = open(flag, 'a+')
-    ff.write(val)
-    ff.write("\n")
-    ff.close()
+    with open(flag, 'a+') as ff:
+        ff.write(val)
+        ff.write("\n")
 
 
 def _clear():
@@ -21,7 +20,7 @@ def _clear():
 def logged():
     flag_file = open(flag, 'r')
     try:
-        lines = [line for line in flag_file]
+        lines = list(flag_file)
     finally:
         flag_file.close()
     return lines
@@ -38,16 +37,16 @@ def teardown():
 
 
 def test_a():
-    assert len(logged()) == 1, "len(%s) !=1" % called
+    assert len(logged()) == 1, f"len({called}) !=1"
 
 
 def test_b():
-    assert len(logged()) == 1, "len(%s) !=1" % called
+    assert len(logged()) == 1, f"len({called}) !=1"
 
 
 class TestMe:
-    def setup_class(cls):
-        cls._setup = True
+    def setup_class(self):
+        self._setup = True
     setup_class = classmethod(setup_class)
 
     def test_one(self):

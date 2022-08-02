@@ -3,7 +3,7 @@ from nose.suite import LazySuite
 from helpers import iter_compat
 
 def gen():
-    for x in range(0, 10):
+    for _ in range(10):
         yield TestLazySuite.TC('test')
 
 class TestLazySuite(unittest.TestCase):

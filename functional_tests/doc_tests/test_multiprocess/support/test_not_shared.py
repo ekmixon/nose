@@ -14,16 +14,16 @@ def teardown():
 
 
 def test_a():
-    assert len(called) == 1, "len(%s) !=1" % called
+    assert len(called) == 1, f"len({called}) !=1"
 
 
 def test_b():
-    assert len(called) == 1, "len(%s) !=1" % called
+    assert len(called) == 1, f"len({called}) !=1"
 
 
 class TestMe:
-    def setup_class(cls):
-        cls._setup = True
+    def setup_class(self):
+        self._setup = True
     setup_class = classmethod(setup_class)
 
     def test_one(self):

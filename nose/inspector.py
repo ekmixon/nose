@@ -75,14 +75,14 @@ def tbsource(tb, context=6):
        since a bug in the 2.3 version of inspect prevents it from correctly
        locating source lines in a traceback frame.
     """
-    
+
     lineno = tb.tb_lineno
     frame = tb.tb_frame
 
     if context > 0:
         start = lineno - 1 - context//2
         log.debug("lineno: %s start: %s", lineno, start)
-        
+
         try:
             lines, dummy = inspect.findsource(frame)
         except IOError:
@@ -93,7 +93,7 @@ def tbsource(tb, context=6):
             start = max(0, min(start, len(lines) - context))
             lines = lines[start:start+context]
             index = lineno - 1 - start
-            
+
             # python 2.5 compat: if previous line ends in a continuation,
             # decrement start by 1 to match 2.4 behavior                
             if sys.version_info >= (2, 5) and index > 0:
@@ -121,7 +121,7 @@ def find_inspectable_lines(lines, pos):
     toinspect = []
     home = lines[pos]
     home_indent = ind.match(home).groups()[0]
-    
+
     before = lines[max(pos-3, 0):pos]
     before.reverse()
     after = lines[pos+1:min(pos+4, len(lines))]
@@ -159,40 +159,33 @@ class Expander:
     def __call__(self, ttype, tok, start, end, line):
         # TODO
         # deal with unicode properly
-        
+
         # TODO
         # Dealing with instance members
         #   always keep the last thing seen  
         #   if the current token is a dot,
         #      get ready to getattr(lastthing, this thing) on the
         #      next call.
-        
+
         if self.lpos is not None:
             if start[1] >= self.lpos:
                 self.expanded_source += ' ' * (start[1]-self.lpos)
-            elif start[1] < self.lpos:
+            else:
                 # newline, indent correctly
                 self.expanded_source += ' ' * start[1]
         self.lpos = end[1]
-      
+
         if ttype == tokenize.INDENT:
             pass
         elif ttype == tokenize.NAME:
             # Clean this junk up
             try:
                 val = self.locals[tok]
-                if callable(val):
-                    val = tok
-                else:
-                    val = repr(val)
+                val = tok if callable(val) else repr(val)
             except KeyError:
                 try:
                     val = self.globals[tok]
-                    if callable(val):
-                        val = tok
-                    else:
-                        val = repr(val)
-
+                    val = tok if callable(val) else repr(val)
                 except KeyError:
                     val = tok
             # FIXME... not sure how to handle things like funcs, classes

@@ -19,7 +19,7 @@ class TestExpander(unittest.TestCase):
         lc = { 'a': 2}
         gb = {}
         exp = Expander(lc, gb)
-        
+
         for tok in tokenize.generate_tokens(src.readline):
             exp(*tok)
         # print "'%s'" % exp.expanded_source
@@ -30,7 +30,7 @@ class TestExpander(unittest.TestCase):
         out = ''
         try:
             assert a < 1, \
-                "This is a multline expression"
+                    "This is a multline expression"
         except AssertionError:
             et, ev, tb = sys.exc_info()
             out = inspect_traceback(tb)

@@ -52,7 +52,7 @@ class TestSkipPlugin(unittest.TestCase):
 
         test = TC('test')
         test(res)
-        assert not res.errors, "Skip was not caught: %s" % res.errors
+        assert not res.errors, f"Skip was not caught: {res.errors}"
         assert res.skipped
         assert res.skipped[0][0] is test
 

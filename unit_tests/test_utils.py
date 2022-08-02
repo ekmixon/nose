@@ -119,31 +119,36 @@ class TestUtils(unittest.TestCase):
         self.assertRaises(TypeError, test_address, "foo")
 
     def test_isclass_detects_classes(self):
+
         class TC(unittest.TestCase):
             pass
         class TC_Classic:
             pass
         class TC_object(object):
             pass
-        # issue153 -- was not detecting custom typed classes...
         class TCType(type):
             pass
         class TC_custom_type(object):
             __metaclass__ = TCType
         class TC_unittest_custom_type(unittest.TestCase):
             __metaclass__ = TCType
-        
-        assert util.isclass(TC), "failed to detect %s as class" % TC
-        assert util.isclass(TC_Classic), "failed to detect %s as class" % TC_Classic
-        assert util.isclass(TC_object), "failed to detect %s as class" % TC_object
-        assert util.isclass(TC_custom_type), "failed to detect %s as class" % TC_custom_type
-        assert util.isclass(TC_unittest_custom_type), "failed to detect %s as class" % TC_unittest_custom_type
+
+        assert util.isclass(TC), f"failed to detect {TC} as class"
+        assert util.isclass(TC_Classic), f"failed to detect {TC_Classic} as class"
+        assert util.isclass(TC_object), f"failed to detect {TC_object} as class"
+        assert util.isclass(
+            TC_custom_type
+        ), f"failed to detect {TC_custom_type} as class"
+
+        assert util.isclass(
+            TC_unittest_custom_type
+        ), f"failed to detect {TC_unittest_custom_type} as class"
         
     def test_isclass_ignores_nonclass_things(self):
         anint = 1
         adict = {}
-        assert not util.isclass(anint), "should have ignored %s" % type(anint)
-        assert not util.isclass(adict), "should have ignored %s" % type(adict)
+        assert not util.isclass(anint), f"should have ignored {type(anint)}"
+        assert not util.isclass(adict), f"should have ignored {type(adict)}"
 
     def test_tolist(self):
         tolist = util.tolist

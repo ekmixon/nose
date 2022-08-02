@@ -38,7 +38,6 @@ def mods():
     M['test_module_transplant_generator'] = imp.new_module(
         'test_module_transplant_generator')
 
-    # a unittest testcase subclass
     class TC(unittest.TestCase):
         def runTest(self):
             pass
@@ -46,8 +45,7 @@ def mods():
     class TC2(unittest.TestCase):
         def runTest(self):
             pass
-    
-    # test class that uses a metaclass
+
     class TCType(type):
         def __new__(cls, name, bases, dct):
             return type.__new__(cls, name, bases, dct)
@@ -62,7 +60,8 @@ def mods():
     def test_func():
         pass
 
-    # non-testcase-subclass test class
+
+
     class TestClass:
 
         def test_func(self):
@@ -73,23 +72,25 @@ def mods():
             """
             def test_odd(v):
                 assert v % 2
-            for i in range(0, 4):
+
+            for i in range(4):
                 yield test_odd, i
 
         def test_generator_method(self):
             """docstring for test generator method
             """
-            for i in range(0, 4):
+            for i in range(4):
                 yield self.try_odd, i
 
         def test_generator_method_name(self):
             """docstring for test generator method name
             """
-            for i in range(0, 4):
+            for i in range(4):
                 yield 'try_odd', i
 
         def try_odd(self, v):
             assert v % 2
+
 
     # test function that is generator
     def test_func_generator():
@@ -97,19 +98,19 @@ def mods():
         """
         def test_odd(v):
             assert v % 2
-        for i in range(0, 4):
+
+        for i in range(4):
             yield test_odd, i
 
     def test_func_generator_name():
         """docstring for test func generator name
         """
-        for i in range(0, 4):
+        for i in range(4):
             yield 'try_odd', i
 
     def try_odd(v):
         assert v % 2
-    
-    # test class defined in one module and used in another
+
     class Transplant(unittest.TestCase):
         def runTest(self):
             pass
@@ -119,7 +120,8 @@ def mods():
         """
         def test_odd(v):
             assert v % 2
-        for i in range(0, 4):
+
+        for i in range(4):
             yield test_odd, i
 
     M['nose'] = nose
@@ -195,9 +197,7 @@ def mock_isdir(path):
 
 
 def mock_isfile(path):
-    if path in ('.', '..'):
-        return False
-    return '.' in path
+    return False if path in ('.', '..') else '.' in path
 
 
 def mock_exists(path):

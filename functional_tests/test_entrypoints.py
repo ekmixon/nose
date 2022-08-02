@@ -14,7 +14,6 @@ ep = os.path.join(support, 'ep')
 
 def test_plugin_entrypoint_is_loadable():
     ep_path = os.path.join(ep, 'Some_plugin.egg-info', 'entry_points.txt')
-    ep_file = open(ep_path, 'r')
-    lines = ep_file.readlines()
-    ep_file.close()
+    with open(ep_path, 'r') as ep_file:
+        lines = ep_file.readlines()
     assert EntryPoint.parse_map(lines)

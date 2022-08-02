@@ -68,10 +68,7 @@ class Importer(object):
         mod = parent = fh = None
 
         for part in parts:
-            if part_fqname == '':
-                part_fqname = part
-            else:
-                part_fqname = "%s.%s" % (part_fqname, part)
+            part_fqname = part if part_fqname == '' else f"{part_fqname}.{part}"
             try:
                 acquire_lock()
                 log.debug("find module part %s (%s) in %s",
@@ -107,16 +104,12 @@ class Importer(object):
         # We only take the dirname if we have a path to a non-dir,
         # because taking the dirname of a symlink to a directory does not
         # give the actual directory parent.
-        if os.path.isdir(filename):
-            return filename
-        else:
-            return os.path.dirname(filename)
+        return filename if os.path.isdir(filename) else os.path.dirname(filename)
 
     def sameModule(self, mod, filename):
         mod_paths = []
         if hasattr(mod, '__path__'):
-            for path in mod.__path__:
-                mod_paths.append(self._dirname_if_file(path))
+            mod_paths.extend(self._dirname_if_file(path) for path in mod.__path__)
         elif hasattr(mod, '__file__'):
             mod_paths.append(self._dirname_if_file(mod.__file__))
         else:
@@ -140,7 +133,7 @@ def add_path(path, config=None):
 
     # FIXME add any src-looking dirs seen too... need to get config for that
 
-    log.debug('Add path %s' % path)
+    log.debug(f'Add path {path}')
     if not path:
         return []
     added = []
@@ -148,7 +141,7 @@ def add_path(path, config=None):
     if (parent
         and os.path.exists(os.path.join(path, '__init__.py'))):
         added.extend(add_path(parent, config))
-    elif not path in sys.path:
+    elif path not in sys.path:
         log.debug("insert %s into sys.path", path)
         sys.path.insert(0, path)
         added.append(path)
@@ -162,6 +155,6 @@ def add_path(path, config=None):
 
 
 def remove_path(path):
-    log.debug('Remove path %s' % path)
+    log.debug(f'Remove path {path}')
     if path in sys.path:
         sys.path.remove(path)

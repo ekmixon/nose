@@ -72,7 +72,7 @@ class Selector(object):
             wanted = (not cls.__name__.startswith('_')
                       and (issubclass(cls, unittest.TestCase)
                            or self.matches(cls.__name__)))
-        
+
         plug_wants = self.plugins.wantClass(cls)        
         if plug_wants is not None:
             log.debug("Plugin setting selection of %s to %s", cls, plug_wants)
@@ -114,11 +114,13 @@ class Selector(object):
         # never, ever load files that match anything in ignore
         # (.* _* and *setup*.py by default)
         base = op_basename(file)
-        ignore_matches = [ ignore_this for ignore_this in self.ignoreFiles
-                           if ignore_this.search(base) ]
-        if ignore_matches:
+        if ignore_matches := [
+            ignore_this
+            for ignore_this in self.ignoreFiles
+            if ignore_this.search(base)
+        ]:
             log.debug('%s matches ignoreFiles pattern; skipped',
-                      base) 
+                      base)
             return False
         if not self.config.includeExe and is_executable(file):
             log.info('%s is executable; skipped', file)
@@ -126,7 +128,7 @@ class Selector(object):
         dummy, ext = op_splitext(base)
         pysrc = ext == '.py'
 
-        wanted = pysrc and self.matches(base) 
+        wanted = pysrc and self.matches(base)
         plug_wants = self.plugins.wantFile(file)
         if plug_wants is not None:
             log.debug("plugin setting want %s to %s", file, plug_wants)
@@ -168,10 +170,7 @@ class Selector(object):
             # never collect 'private' methods
             return False
         declared = getattr(method, '__test__', None)
-        if declared is not None:
-            wanted = declared
-        else:
-            wanted = self.matches(method_name)
+        wanted = declared if declared is not None else self.matches(method_name)
         plug_wants = self.plugins.wantMethod(method)
         if plug_wants is not None:
             wanted = plug_wants
@@ -189,7 +188,7 @@ class Selector(object):
             wanted = declared
         else:
             wanted = self.matches(module.__name__.split('.')[-1]) \
-                     or module.__name__ == '__main__'
+                         or module.__name__ == '__main__'
         plug_wants = self.plugins.wantModule(module)
         if plug_wants is not None:
             wanted = plug_wants
@@ -226,9 +225,8 @@ class TestAddress(object):
         self.filename, self.module, self.call = split_test_name(name)
         log.debug('Test name %s resolved to file %s, module %s, call %s',
                   name, self.filename, self.module, self.call)
-        if self.filename is None:
-            if self.module is not None:
-                self.filename = getfilename(self.module, self.workingDir)
+        if self.filename is None and self.module is not None:
+            self.filename = getfilename(self.module, self.workingDir)
         if self.filename:
             self.filename = src(self.filename)
             if not op_isabs(self.filename):
@@ -247,5 +245,4 @@ class TestAddress(object):
         return self.name
 
     def __repr__(self):
-        return "%s: (%s, %s, %s)" % (self.name, self.filename,
-                                     self.module, self.call)
+        return f"{self.name}: ({self.filename}, {self.module}, {self.call})"

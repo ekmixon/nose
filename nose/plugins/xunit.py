@@ -74,13 +74,11 @@ def escape_cdata(cdata):
     return xml_safe(cdata).replace(']]>', ']]>]]&gt;<![CDATA[')
 
 def id_split(idval):
-    m = TEST_ID.match(idval)
-    if m:
-        name, fargs = m.groups()
-        head, tail = name.rsplit(".", 1)
-        return [head, tail+fargs]
-    else:
+    if not (m := TEST_ID.match(idval)):
         return idval.rsplit(".", 1)
+    name, fargs = m.groups()
+    head, tail = name.rsplit(".", 1)
+    return [head, tail+fargs]
 
 def nice_classname(obj):
     """Returns a nice name for class object or class instance.
@@ -91,19 +89,14 @@ def nice_classname(obj):
         '...Exception'
 
     """
-    if inspect.isclass(obj):
-        cls_name = obj.__name__
-    else:
-        cls_name = obj.__class__.__name__
-    mod = inspect.getmodule(obj)
-    if mod:
-        name = mod.__name__
-        # jython
-        if name.startswith('org.python.core.'):
-            name = name[len('org.python.core.'):]
-        return "%s.%s" % (name, cls_name)
-    else:
+    cls_name = obj.__name__ if inspect.isclass(obj) else obj.__class__.__name__
+    if not (mod := inspect.getmodule(obj)):
         return cls_name
+    name = mod.__name__
+    # jython
+    if name.startswith('org.python.core.'):
+        name = name[len('org.python.core.'):]
+    return f"{name}.{cls_name}"
 
 def exc_message(exc_info):
     """Return the exception's message."""
@@ -161,14 +154,7 @@ class Xunit(Plugin):
         self._currentStderr = None
 
     def _timeTaken(self):
-        if hasattr(self, '_timer'):
-            taken = time() - self._timer
-        else:
-            # test died before it ran (probably error in setup())
-            # or success/failure added before test started probably
-            # due to custom TestResult munging
-            taken = 0.0
-        return taken
+        return time() - self._timer if hasattr(self, '_timer') else 0.0
 
     def _quoteattr(self, attr):
         """Escape an XML attribute. Value can be unicode."""
@@ -177,7 +163,7 @@ class Xunit(Plugin):
 
     def _getCls(self, id):
         if self.xunit_prefix_class:
-            return self._quoteattr('%s.%s' % (self.xunit_testsuite_name, id_split(id)[0]))
+            return self._quoteattr(f'{self.xunit_testsuite_name}.{id_split(id)[0]}')
         else:
             return self._quoteattr(id_split(id)[0])
 
@@ -244,7 +230,7 @@ class Xunit(Plugin):
         self.error_report_file.close()
         if self.config.verbosity > 1:
             stream.writeln("-" * 70)
-            stream.writeln("XML: %s" % self.error_report_file.name)
+            stream.writeln(f"XML: {self.error_report_file.name}")
 
     def _startCapture(self):
         self._capture_stack.append((sys.stdout, sys.stderr))
@@ -279,16 +265,14 @@ class Xunit(Plugin):
 
     def _getCapturedStdout(self):
         if self._currentStdout:
-            value = self._currentStdout.getvalue()
-            if value:
+            if value := self._currentStdout.getvalue():
                 return '<system-out><![CDATA[%s]]></system-out>' % escape_cdata(
                         value)
         return ''
 
     def _getCapturedStderr(self):
         if self._currentStderr:
-            value = self._currentStderr.getvalue()
-            if value:
+            if value := self._currentStderr.getvalue():
                 return '<system-err><![CDATA[%s]]></system-err>' % escape_cdata(
                         value)
         return ''

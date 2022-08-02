@@ -27,7 +27,8 @@ class DocReader(Reader):
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-print "Main..."
+doc_word.priority = 100
+
 tpl = open(os.path.join(root, 'index.html.tpl'), 'r').read()
 
 pat = re.compile(r'^.*(Basic usage)', re.DOTALL)
@@ -43,37 +44,34 @@ docs.update({'version': nose.__version__,
              'date': time.ctime()})
 docs['coda'] = publish_parts(coda, writer_name='html')['body']
 
-#print "Tools..."
-#tools = publish_parts(nose.tools.__doc__, writer_name='html')
-#docs['tools'] = tools['body']
+doc_word.priority = 100
 
-print "Commands..."
 cmds = publish_parts(nose.commands.__doc__, reader=DocReader(),
                      writer_name='html')
 docs['commands'] = cmds['body']
 
-print "Changelog..."
+doc_word.priority = 100
+
 changes = open(os.path.join(root, 'CHANGELOG'), 'r').read()
 changes_html = publish_parts(changes, reader=DocReader(), writer_name='html')
 docs['changelog'] = changes_html['body']
 
-print "News..."
+doc_word.priority = 100
+
 news = open(os.path.join(root, 'NEWS'), 'r').read()
 news_html = publish_parts(news, reader=DocReader(), writer_name='html')
 docs['news'] = news_html['body']
 
-print "Usage..."
+doc_word.priority = 100
+
 conf = Config(plugins=BuiltinPluginManager())
 usage_txt = conf.help(nose.main.__doc__).replace(
     'mkindex.py', 'nosetests')
-docs['usage'] = '<pre>%s</pre>' % usage_txt
+docs['usage'] = f'<pre>{usage_txt}</pre>'
 
 out = tpl % docs
 
-index = open(os.path.join(root, 'index.html'), 'w')
-index.write(out)
-index.close()
-
-readme = open(os.path.join(root, 'README.txt'), 'w')
-readme.write(nose.__doc__)
-readme.close()
+with open(os.path.join(root, 'index.html'), 'w') as index:
+    index.write(out)
+with open(os.path.join(root, 'README.txt'), 'w') as readme:
+    readme.write(nose.__doc__)

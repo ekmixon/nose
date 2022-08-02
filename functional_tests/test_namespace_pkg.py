@@ -30,8 +30,10 @@ class TestNamespacePackages(unittest.TestCase):
                            testRunner=runner,
                            exit=False)
         res = runner.result
-        self.assertEqual(res.testsRun, 1,
-                         "Expected to run 1 test, ran %s" % res.testsRun)
+        self.assertEqual(
+            res.testsRun, 1, f"Expected to run 1 test, ran {res.testsRun}"
+        )
+
         assert res.wasSuccessful()
         assert not res.errors
         assert not res.failures
@@ -47,8 +49,10 @@ class TestNamespacePackages(unittest.TestCase):
                            testRunner=runner,
                            exit=False)
         res = runner.result
-        self.assertEqual(res.testsRun, 2,
-                         "Expected to run 2 tests, ran %s" % res.testsRun)
+        self.assertEqual(
+            res.testsRun, 2, f"Expected to run 2 tests, ran {res.testsRun}"
+        )
+
         assert res.wasSuccessful()
         assert not res.errors
         assert not res.failures

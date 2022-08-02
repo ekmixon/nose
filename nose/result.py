@@ -25,7 +25,7 @@ def _exception_detail(exc):
     try:
         return str(exc)
     except:
-        return '<unprintable %s object>' % type(exc).__name__
+        return f'<unprintable {type(exc).__name__} object>'
 
 
 class TextTestResult(_TextTestResult):
@@ -78,10 +78,7 @@ class TextTestResult(_TextTestResult):
 
     # override to bypass changes in 2.7
     def getDescription(self, test):
-        if self.descriptions:
-            return test.shortDescription() or str(test)
-        else:
-            return str(test)
+        return test.shortDescription() or str(test) if self.descriptions else str(test)
 
     def printLabel(self, label, err=None):
         # Might get patched into a streamless result
@@ -90,8 +87,7 @@ class TextTestResult(_TextTestResult):
             if self.showAll:
                 message = [label]
                 if err:
-                    detail = _exception_detail(err[1])
-                    if detail:
+                    if detail := _exception_detail(err[1]):
                         message.append(detail)
                 stream.writeln(": ".join(message))
             elif self.dots:

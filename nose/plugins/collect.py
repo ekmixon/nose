@@ -28,12 +28,13 @@ class CollectOnly(Plugin):
     def options(self, parser, env):
         """Register commandline options.
         """
-        parser.add_option('--collect-only',
-                          action='store_true',
-                          dest=self.enableOpt,
-                          default=env.get('NOSE_COLLECT_ONLY'),
-                          help="Enable collect-only: %s [COLLECT_ONLY]" %
-                          (self.help()))
+        parser.add_option(
+            '--collect-only',
+            action='store_true',
+            dest=self.enableOpt,
+            default=env.get('NOSE_COLLECT_ONLY'),
+            help=f"Enable collect-only: {self.help()} [COLLECT_ONLY]",
+        )
 
     def prepareTestLoader(self, loader):
         """Install collect-only suite class in TestLoader.
